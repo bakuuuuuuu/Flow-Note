@@ -39,19 +39,29 @@ exports.getBoards = async (req, res) => {
 exports.getBoardById = async (req, res) => {
   try {
     const board = await Board.findById(req.params.id);
-
     if (!board || board.owner_id.toString() !== req.user._id.toString()) {
       return res.status(404).json({ message: '보드를 찾을 수 없거나 권한이 없습니다.' });
     }
 
     const List = require('../models/List');
-    const lists = await List.find({ board_id: req.params.id }).sort('pos'); 
+    const Card = require('../models/Card');
+    const lists = await List.find({ board_id: req.params.id }).sort('pos');
+
+    const listsWithCards = await Promise.all(
+      lists.map(async (list) => {
+        const cards = await Card.find({ list_id: list._id }).sort('pos');
+        return {
+          ...list._doc,
+          cards: cards
+        };
+      })
+    );
 
     res.status(200).json({
       ...board._doc,
-      lists: lists
+      lists: listsWithCards
     });
   } catch (error) {
-    res.status(500).json({ message: '보드 상세 정보 조회 실패', error: error.message });
+    res.status(500).json({ message: '보드 상세 조회 실패', error: error.message });
   }
 };

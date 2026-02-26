@@ -7,6 +7,7 @@ require('dotenv').config();
 const userRoutes = require('./routes/userRoutes');
 const boardRoutes = require('./routes/boardRoutes');
 const listRoutes = require('./routes/listRoutes');
+const cardRoutes = require('./routes/cardRoutes');
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use('/api/users', userRoutes);
 app.use('/api/boards', boardRoutes);
 app.use('/api/lists', listRoutes);
+app.use('/api/cards', cardRoutes);
 
 // DB 연결
 mongoose.connect(process.env.MONGO_URI)
