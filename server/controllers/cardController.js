@@ -36,3 +36,36 @@ exports.createCard = async (req, res) => {
     });
   }
 };
+
+// [카드 수정]
+exports.updateCard = async (req, res) => {
+  try {
+    const cardId = req.params.id;
+    const updatedCard = await Card.findByIdAndUpdate(
+      cardId,
+      { $set: req.body },
+      { new: true } 
+    );
+
+    if (!updatedCard) {
+      return res.status(404).json({ message: '카드를 찾을 수 없습니다.' });
+    }
+
+    res.status(200).json(updatedCard);
+  } catch (error) {
+    res.status(500).json({ message: '카드 수정 실패', error: error.message });
+  }
+};
+
+// [카드 삭제]
+exports.deleteCard = async (req, res) => {
+  try {
+    const card = await Card.findByIdAndDelete(req.params.id);
+    if (!card) {
+      return res.status(404).json({ message: '카드를 찾을 수 없습니다.' });
+    }
+    res.status(200).json({ message: '카드가 성공적으로 삭제되었습니다.' });
+  } catch (error) {
+    res.status(500).json({ message: '카드 삭제 실패', error: error.message });
+  }
+};
