@@ -1,9 +1,16 @@
 const mongoose = require('mongoose');
 
 const cardSchema = new mongoose.Schema({
-  // 위치 정보
-  board_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Board', required: true },
-  list_id: { type: mongoose.Schema.Types.ObjectId, required: true },
+  list_id: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'List',
+    required: true 
+  },
+  board_id: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Board', 
+    required: true 
+  },
 
   // 기본 내용
   title: { type: String, required: true, trim: true },
@@ -14,10 +21,15 @@ const cardSchema = new mongoose.Schema({
   remind_before: { type: Number, default: 0 },
   
   // 정렬 및 상태
-  pos: { type: Number, required: true, default: 0 }, 
+  pos: { type: Number, required: true, default: 65535 },
   is_archived: { type: Boolean, default: false }, 
 
   // 관계 및 라벨
+  owner_id: {
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User',
+    required: true 
+  },
   assignee_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   labels: [
     {
@@ -26,7 +38,6 @@ const cardSchema = new mongoose.Schema({
     }
   ],
 
-  // 하위 항목들 (배열 형태)
   checklists: [
     {
       text: { type: String, required: true },
@@ -55,7 +66,7 @@ const cardSchema = new mongoose.Schema({
     }
   ]
 }, {
-  timestamps: true 
+  timestamps: true
 });
 
 module.exports = mongoose.model('Card', cardSchema);
