@@ -19,6 +19,10 @@ const boardSchema = new mongoose.Schema({
   deadline: {
     type: Date
   },
+  bg_theme: { 
+    type: String, 
+    default: 'default-theme' 
+  },
 
   // 소유자 및 협업 멤버
   owner_id: {
@@ -41,7 +45,6 @@ const boardSchema = new mongoose.Schema({
     }
   ]
 }, {
-
   // 생성 및 수정 시간 자동 기록
   timestamps: true 
 });
