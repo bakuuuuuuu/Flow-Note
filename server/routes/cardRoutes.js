@@ -12,4 +12,7 @@ router.patch('/:id', protect, cardController.updateCard);
 // [DELETE] 카드 삭제
 router.delete('/:id', protect, cardController.deleteCard);
 
+// [PATCH] 카드 이동
+router.patch('/:cardId/move', protect, cardController.moveCard);
+
 module.exports = router;
