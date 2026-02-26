@@ -69,3 +69,25 @@ exports.deleteCard = async (req, res) => {
     res.status(500).json({ message: '카드 삭제 실패', error: error.message });
   }
 };
+
+// [카드 이동 (순서 및 리스트 변경)]
+exports.moveCard = async (req, res) => {
+  try {
+    const { cardId } = req.params;
+    const { list_id, pos } = req.body;
+
+    const updatedCard = await Card.findByIdAndUpdate(
+      cardId,
+      { list_id, pos },
+      { new: true }
+    );
+
+    if (!updatedCard) {
+      return res.status(404).json({ message: '카드를 찾을 수 없습니다.' });
+    }
+
+    res.status(200).json(updatedCard);
+  } catch (error) {
+    res.status(500).json({ message: '카드 이동 실패', error: error.message });
+  }
+};
