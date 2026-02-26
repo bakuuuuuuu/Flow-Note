@@ -44,8 +44,14 @@ exports.getBoardById = async (req, res) => {
       return res.status(404).json({ message: '보드를 찾을 수 없거나 권한이 없습니다.' });
     }
 
-    res.status(200).json(board);
+    const List = require('../models/List');
+    const lists = await List.find({ board_id: req.params.id }).sort('pos'); 
+
+    res.status(200).json({
+      ...board._doc,
+      lists: lists
+    });
   } catch (error) {
-    res.status(500).json({ message: '보드 정보를 가져오는데 실패했습니다.', error: error.message });
+    res.status(500).json({ message: '보드 상세 정보 조회 실패', error: error.message });
   }
 };

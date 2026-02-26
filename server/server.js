@@ -6,6 +6,7 @@ require('dotenv').config();
 // 라우터 파일 불러오기
 const userRoutes = require('./routes/userRoutes');
 const boardRoutes = require('./routes/boardRoutes');
+const listRoutes = require('./routes/listRoutes');
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(express.json());
 // 라우터 경로 등록
 app.use('/api/users', userRoutes);
 app.use('/api/boards', boardRoutes);
+app.use('/api/lists', listRoutes);
 
 // DB 연결
 mongoose.connect(process.env.MONGO_URI)
