@@ -21,7 +21,7 @@ exports.createBoard = async (req, res) => {
   }
 };
 
-// 내 보드 목록 조회
+// [내 보드 목록 조회]
 exports.getBoards = async (req, res) => {
   try {
     const boards = await Board.find({ owner_id: req.user._id }).sort({ createdAt: -1 });
@@ -32,5 +32,20 @@ exports.getBoards = async (req, res) => {
       message: '보드 목록을 가져오는데 실패했습니다.', 
       error: error.message 
     });
+  }
+};
+
+// [특정 보드 상세 조회 (ID 기준)]
+exports.getBoardById = async (req, res) => {
+  try {
+    const board = await Board.findById(req.params.id);
+
+    if (!board || board.owner_id.toString() !== req.user._id.toString()) {
+      return res.status(404).json({ message: '보드를 찾을 수 없거나 권한이 없습니다.' });
+    }
+
+    res.status(200).json(board);
+  } catch (error) {
+    res.status(500).json({ message: '보드 정보를 가져오는데 실패했습니다.', error: error.message });
   }
 };

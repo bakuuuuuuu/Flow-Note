@@ -9,4 +9,7 @@ router.post('/', protect, boardController.createBoard);
 // [GET] 보드 목록 조회
 router.get('/', protect, boardController.getBoards);
 
+// [GET] 특정 보드 상세 정보 조회
+router.get('/:id', protect, boardController.getBoardById);
+
 module.exports = router;
