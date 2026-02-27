@@ -8,6 +8,8 @@ const userRoutes = require('./routes/userRoutes');
 const boardRoutes = require('./routes/boardRoutes');
 const listRoutes = require('./routes/listRoutes');
 const cardRoutes = require('./routes/cardRoutes');
+const activityRoutes = require('./routes/activityRoutes');
+
 
 const app = express();
 
@@ -20,6 +22,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/boards', boardRoutes);
 app.use('/api/lists', listRoutes);
 app.use('/api/cards', cardRoutes);
+app.use('/api/activities', activityRoutes);
 
 // DB 연결
 mongoose.connect(process.env.MONGO_URI)
