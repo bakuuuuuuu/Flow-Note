@@ -3,12 +3,13 @@ const Board = require('../models/Board');
 // [보드 생성]
 exports.createBoard = async (req, res) => {
   try {
-    const { title, category, deadline, bg_theme } = req.body;
+    const { title, category, deadline, bg_theme, is_starred } = req.body;
 
     const newBoard = new Board({
       title,
       category,
       deadline,
+      is_starred: is_starred || false,
       bg_theme: bg_theme || 'default-theme',
       owner_id: req.user._id,
       members: [{ user_id: req.user._id, role: 'admin' }] 
