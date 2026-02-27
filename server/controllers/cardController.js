@@ -4,7 +4,18 @@ const List = require('../models/List');
 // [카드 생성]
 exports.createCard = async (req, res) => {
   try {
-    const { title, list_id, board_id, content, pos } = req.body;
+    const { 
+      title, 
+      list_id, 
+      board_id, 
+      content, 
+      pos, 
+      status, 
+      priority, 
+      due_date, 
+      labels, 
+      checklists 
+    } = req.body;
 
     if (!title || !list_id || !board_id) {
       return res.status(400).json({ message: '제목, 리스트ID, 보드ID는 필수입니다.' });
@@ -16,14 +27,18 @@ exports.createCard = async (req, res) => {
       return res.status(404).json({ message: '카드를 추가할 리스트를 찾을 수 없습니다.' });
     }
 
-    // 카드 객체 생성
     const newCard = new Card({
       title,
       content: content || "",
       list_id,
       board_id,
       owner_id: req.user._id,
-      pos: pos || 65535
+      pos: pos || 65535,
+      status: status || '대기',
+      priority: priority || '보통',
+      due_date,
+      labels: labels || [],
+      checklists: checklists || []
     });
 
     const savedCard = await newCard.save();

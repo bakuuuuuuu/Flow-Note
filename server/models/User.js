@@ -41,7 +41,13 @@ const userSchema = new mongoose.Schema({
   // 프로필 및 개인 설정
   profile_img: {
     type: String,
-    default: "" 
+    default: "default_profile.png" 
+  },
+  // 상태 메시지 (UI 대시보드용)
+  status_message: {
+    type: String,
+    maxlength: 50,
+    default: ""
   },
   settings: {
     theme: {
@@ -54,7 +60,6 @@ const userSchema = new mongoose.Schema({
     }
   },
 }, {
-
   // 생성 및 수정 시간 자동 기록
   timestamps: true 
 });

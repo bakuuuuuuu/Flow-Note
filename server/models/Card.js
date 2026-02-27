@@ -22,6 +22,16 @@ const cardSchema = new mongoose.Schema({
   
   // 정렬 및 상태
   pos: { type: Number, required: true, default: 65535 },
+  status: { 
+    type: String, 
+    enum: ['대기', '진행중', '완료', '보류'], 
+    default: '대기' 
+  },
+  priority: {
+    type: String,
+    enum: ['긴급', '높음', '보통', '낮음'],
+    default: '보통'
+  },
   is_archived: { type: Boolean, default: false }, 
 
   // 관계 및 라벨
@@ -30,6 +40,7 @@ const cardSchema = new mongoose.Schema({
     ref: 'User',
     required: true 
   },
+  // (추후 확장을 위함)
   assignee_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   labels: [
     {
@@ -48,6 +59,8 @@ const cardSchema = new mongoose.Schema({
     {
       fileName: { type: String },
       fileUrl: { type: String },
+      fileSize: { type: Number }, 
+      fileType: { type: String }, 
       uploadedAt: { type: Date, default: Date.now }
     }
   ],
@@ -57,14 +70,8 @@ const cardSchema = new mongoose.Schema({
       content: { type: String, required: true },
       createdAt: { type: Date, default: Date.now }
     }
-  ],
-  logsArray: [
-    {
-      user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-      action: { type: String, required: true }, 
-      createdAt: { type: Date, default: Date.now }
-    }
   ]
+
 }, {
   timestamps: true
 });
