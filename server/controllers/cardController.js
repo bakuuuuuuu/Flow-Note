@@ -1,6 +1,30 @@
 const Card = require('../models/Card');
 const List = require('../models/List');
 const Activity = require('../models/Activity');
+const createNotification = require('../utils/createNotification');
+
+// [카드 상세 조회]
+exports.getCardById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const card = await Card.findById(id);
+    if (!card) {
+      return res.status(404).json({ message: '카드를 찾을 수 없습니다.' });
+    }
+
+    const activities = await Activity.find({ card_id: id })
+      .populate('user_id', 'name profile_img')
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    res.status(200).json({
+      ...card._doc,
+      activities: activities || []
+    });
+  } catch (error) {
+    res.status(500).json({ message: '카드 상세 조회 실패', error: error.message });
+  }
+};
 
 // [카드 생성]
 exports.createCard = async (req, res) => {
@@ -19,47 +43,35 @@ exports.createCard = async (req, res) => {
     }
 
     const newCard = new Card({
-      title,
-      content: content || "",
-      list_id,
-      board_id,
+      title, content: content || "", list_id, board_id,
       owner_id: req.user._id,
       pos: pos || 65535,
       status: status || '대기',
       priority: priority || '보통',
-      due_date,
-      labels: labels || [],
-      checklists: checklists || []
+      due_date, labels: labels || [], checklists: checklists || []
     });
 
     const savedCard = await newCard.save();
-    console.log("✅ 1단계: 카드 저장 완료 ->", savedCard._id);
 
-    // [디버깅] 로그 생성 시도
-    try {
-      console.log("🚀 2단계: 활동 로그 생성 시도 중...");
-      const activityData = {
-        board_id: board_id,
-        card_id: savedCard._id,
-        user_id: req.user._id,
-        action: '카드 생성',
-        details: `'${title}' 카드가 생성되었습니다.`
-      };
-      console.log("📝 로그 데이터 확인:", activityData);
+    await Activity.create({
+      board_id, card_id: savedCard._id, user_id: req.user._id,
+      action: '카드 생성',
+      details: `'${title}' 카드가 생성되었습니다.`
+    });
 
-      const newLog = await Activity.create(activityData);
-      console.log("✨ 3단계: 활동 로그 저장 성공! ID:", newLog._id);
-    } catch (logError) {
-      console.error("❌ 활동 로그 생성 중 발생한 개별 에러:", logError);
-    }
+    // 카드 생성 알림
+    await createNotification({
+      user_id: req.user._id,
+      category: 'UPDATE',
+      type: 'card_created',
+      title: '새 카드 생성',
+      content: `'${title}' 카드가 성공적으로 생성되었습니다.`,
+      link_url: `/cards/${savedCard._id}`
+    });
     
     res.status(201).json(savedCard);
   } catch (error) {
-    console.error("🔥 전체 프로세스 에러:", error);
-    res.status(500).json({ 
-      message: '카드 생성 중 에러 발생', 
-      error: error.message 
-    });
+    res.status(500).json({ message: '카드 생성 중 에러 발생', error: error.message });
   }
 };
 
@@ -77,13 +89,21 @@ exports.updateCard = async (req, res) => {
       return res.status(404).json({ message: '카드를 찾을 수 없습니다.' });
     }
 
-    // 수정 로그 남기기
     await Activity.create({
       board_id: updatedCard.board_id,
       card_id: updatedCard._id,
       user_id: req.user._id,
       action: '카드 수정',
       details: `'${updatedCard.title}' 카드가 수정되었습니다.`
+    });
+
+    await createNotification({
+      user_id: req.user._id,
+      category: 'UPDATE',
+      type: 'card_updated',
+      title: '노트 업데이트',
+      content: `'${updatedCard.title}' 카드의 상세 정보가 변경되었습니다.`,
+      link_url: `/cards/${updatedCard._id}`
     });
 
     res.status(200).json(updatedCard);
@@ -100,18 +120,24 @@ exports.deleteCard = async (req, res) => {
       return res.status(404).json({ message: '카드를 찾을 수 없습니다.' });
     }
 
-    const board_id = card.board_id;
-    const card_title = card.title;
+    const { board_id, title: card_title } = card;
 
-    await Card.findByIdAndDelete(req.params.id);
-
-    // 삭제 로그 남기기
-    await Activity.create({
-      board_id,
+    await createNotification({
       user_id: req.user._id,
+      category: 'UPDATE',
+      type: 'card_deleted',
+      title: '카드 삭제',
+      content: `'${card_title}' 카드가 삭제되었습니다.`,
+      link_url: `/boards/${board_id}`
+    });
+
+    await Activity.create({
+      board_id, user_id: req.user._id,
       action: '카드 삭제',
       details: `'${card_title}' 카드가 삭제되었습니다.`
     });
+
+    await Card.findByIdAndDelete(req.params.id);
 
     res.status(200).json({ message: '카드가 성공적으로 삭제되었습니다.' });
   } catch (error) {
@@ -126,22 +152,28 @@ exports.moveCard = async (req, res) => {
     const { list_id, pos } = req.body;
 
     const updatedCard = await Card.findByIdAndUpdate(
-      cardId,
-      { list_id, pos },
-      { new: true }
+      cardId, { list_id, pos }, { new: true }
     );
 
     if (!updatedCard) {
       return res.status(404).json({ message: '카드를 찾을 수 없습니다.' });
     }
 
-    // 이동 로그 남기기
     await Activity.create({
       board_id: updatedCard.board_id,
       card_id: updatedCard._id,
       user_id: req.user._id,
       action: '카드 이동',
-      details: `'${updatedCard.title}' 카드가 이동되었습니다.`
+      details: `'${updatedCard.title}' 카드의 위치가 변경되었습니다.`
+    });
+
+    await createNotification({
+      user_id: req.user._id,
+      category: 'UPDATE',
+      type: 'card_moved',
+      title: '카드 위치 이동',
+      content: `'${updatedCard.title}' 카드가 다른 리스트로 이동되었습니다.`,
+      link_url: `/cards/${updatedCard._id}`
     });
 
     res.status(200).json(updatedCard);
