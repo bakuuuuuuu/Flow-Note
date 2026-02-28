@@ -15,4 +15,7 @@ router.delete('/:id', protect, cardController.deleteCard);
 // [PATCH] 카드 이동
 router.patch('/:cardId/move', protect, cardController.moveCard);
 
+// [GET] 카드 상세 조회
+router.get('/:id', protect, cardController.getCardById);
+
 module.exports = router;

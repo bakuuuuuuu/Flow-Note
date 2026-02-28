@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const createNotification = require('../utils/createNotification');
 
 // [회원가입]
 exports.registerUser = async (req, res) => {
@@ -34,6 +35,16 @@ exports.registerUser = async (req, res) => {
       phone,
     });
 
+    // 회원가입 환영 알림 추가
+    await createNotification({
+      user_id: user._id,
+      category: 'SYSTEM',
+      type: 'welcome',
+      title: '회원가입을 환영합니다! 🎉',
+      content: `${nickname}님, Flow-Note의 회원이 되신 것을 진심으로 환영합니다. 지금 바로 첫 보드를 만들어보세요!`,
+      link_url: '/boards'
+    });
+
     // 성공 메시지 및 데이터 반환
     res.status(201).json({
       message: '회원가입 성공!',
@@ -46,7 +57,6 @@ exports.registerUser = async (req, res) => {
     });
 
   } catch (error) {
-    // 예외 처리
     if (error.code === 11000) {
       return res.status(400).json({ message: '중복된 값이 존재합니다.' });
     }
@@ -59,26 +69,22 @@ exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 회원가입 유무 확인
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: '가입되지 않은 이메일입니다.' });
     }
 
-    // 비밀번호 일치 유무 확인
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: '비밀번호가 틀렸습니다.' });
     }
 
-    // 로그인 성공 시 토큰 생성
     const token = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
 
-    // 토큰을 포함한 응답 보내기
     res.status(200).json({
       message: '로그인 성공!',
       token,
@@ -90,7 +96,6 @@ exports.loginUser = async (req, res) => {
     });
 
   } catch (error) {
-    // 예외 처리
     res.status(500).json({ message: '서버 에러 발생', error: error.message });
   }
 };
