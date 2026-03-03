@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 // 라우터 파일 불러오기
@@ -16,6 +17,9 @@ const app = express();
 // 미들웨어 설정
 app.use(cors());
 app.use(express.json());
+
+// 정적 파일 제공 설정
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // 라우터 경로 등록
 app.use('/api/users', userRoutes);

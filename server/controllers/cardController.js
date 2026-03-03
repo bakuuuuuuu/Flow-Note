@@ -2,6 +2,8 @@ const Card = require('../models/Card');
 const List = require('../models/List');
 const Activity = require('../models/Activity');
 const createNotification = require('../utils/createNotification');
+const fs = require('fs');
+const path = require('path');
 
 // [카드 상세 조회]
 exports.getCardById = async (req, res) => {
@@ -120,6 +122,16 @@ exports.deleteCard = async (req, res) => {
       return res.status(404).json({ message: '카드를 찾을 수 없습니다.' });
     }
 
+    // 카드 삭제 시 실제 파일들도 삭제
+    if (card.attachments && card.attachments.length > 0) {
+      card.attachments.forEach(file => {
+        const filePath = path.join(__dirname, '..', file.fileUrl.substring(1));
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      });
+    }
+
     const { board_id, title: card_title } = card;
 
     await createNotification({
@@ -179,5 +191,75 @@ exports.moveCard = async (req, res) => {
     res.status(200).json(updatedCard);
   } catch (error) {
     res.status(500).json({ message: '카드 이동 실패', error: error.message });
+  }
+};
+
+// [카드 첨부 파일 업로드]
+exports.uploadCardAttachments = async (req, res) => {
+  try {
+    const cardId = req.params.id;
+    
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ message: '업로드할 파일이 없습니다.' });
+    }
+
+    // 파일 정보 배열 생성
+    const newAttachments = req.files.map(file => ({
+      fileName: file.originalname,
+      fileUrl: `/${file.path.replace(/\\/g, '/')}`,
+      fileSize: file.size,
+      fileType: file.mimetype
+    }));
+
+    // DB 업데이트
+    const card = await Card.findByIdAndUpdate(
+      cardId,
+      { $push: { attachments: { $each: newAttachments } } },
+      { new: true }
+    );
+
+    if (!card) {
+      return res.status(404).json({ message: '카드를 찾을 수 없습니다.' });
+    }
+
+    res.status(200).json({
+      message: '파일 업로드 성공!',
+      attachments: card.attachments
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: '서버 에러 발생', error: error.message });
+  }
+};
+
+// [카드 첨부 파일 개별 삭제]
+exports.deleteCardAttachment = async (req, res) => {
+  try {
+    const { id, attachmentId } = req.params;
+
+    const card = await Card.findById(id);
+    if (!card) return res.status(404).json({ message: '카드를 찾을 수 없습니다.' });
+
+    // 삭제할 파일 정보 찾기
+    const attachment = card.attachments.id(attachmentId);
+    if (!attachment) return res.status(404).json({ message: '첨부파일을 찾을 수 없습니다.' });
+
+    // 서버에서 실제 파일 삭제
+    const filePath = path.join(__dirname, '..', attachment.fileUrl.substring(1));
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    // DB에서 정보 제거
+    card.attachments.pull(attachmentId);
+    await card.save();
+
+    res.status(200).json({ 
+      message: '첨부파일이 삭제되었습니다.', 
+      attachments: card.attachments 
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: '파일 삭제 실패', error: error.message });
   }
 };
