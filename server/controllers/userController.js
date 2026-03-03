@@ -2,6 +2,8 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const createNotification = require('../utils/createNotification');
+const fs = require('fs');
+const path = require('path');
 
 // [회원가입]
 exports.registerUser = async (req, res) => {
@@ -102,15 +104,81 @@ exports.loginUser = async (req, res) => {
 
 // [내 프로필 정보 조회]
 exports.getUserProfile = async (req, res) => { 
-  const user = req.user;
+  try {
+    const user = await User.findById(req.user._id).select('-password');
 
-  if (user) {
-    res.json({
-      _id: user._id,
-      email: user.email,
-      nickname: user.nickname,
+    if (user) {
+      res.status(200).json({
+        _id: user._id,
+        email: user.email,
+        nickname: user.nickname,
+        name: user.name,
+        profile_img: user.profile_img || null, // 이미지가 없으면 null 반환
+        status_message: user.status_message || "",
+      });
+    } else {
+      res.status(404).json({ message: '유저를 찾을 수 없습니다.' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: '서버 에러 발생', error: error.message });
+  }
+};
+
+// [프로필 이미지 업데이트]
+exports.updateProfileImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: '이미지 파일이 없습니다.' });
+    }
+
+    // 현재 유저 정보 가져오기
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+
+    // 기존 이미지 서버에서 삭제
+    if (user.profile_img) {
+      const oldPath = path.join(__dirname, '..', user.profile_img.substring(1));
+      if (fs.existsSync(oldPath)) {
+        fs.unlinkSync(oldPath);
+      }
+    }
+
+    // 새 이미지 경로 저장
+    const imagePath = `/${req.file.path.replace(/\\/g, '/')}`;
+    user.profile_img = imagePath;
+    await user.save();
+
+    res.status(200).json({
+      message: '프로필 이미지가 변경되었습니다.',
+      profile_img: user.profile_img
     });
-  } else {
-    res.status(404).json({ message: '유저를 찾을 수 없습니다.' });
+
+  } catch (error) {
+    res.status(500).json({ message: '서버 에러 발생', error: error.message });
+  }
+};
+
+// [프로필 이미지 삭제 (기본 이미지로 돌아가기)]
+exports.deleteProfileImage = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+
+    // 서버에 실제 파일이 있다면 삭제
+    if (user.profile_img) {
+      const filePath = path.join(__dirname, '..', user.profile_img.substring(1));
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    // DB에서 이미지 경로 비우기
+    user.profile_img = null; // 또는 ""
+    await user.save();
+
+    res.status(200).json({ message: '프로필 이미지가 삭제되었습니다.' });
+
+  } catch (error) {
+    res.status(500).json({ message: '서버 에러 발생', error: error.message });
   }
 };

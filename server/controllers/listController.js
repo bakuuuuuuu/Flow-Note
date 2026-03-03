@@ -1,5 +1,8 @@
 const List = require('../models/List');
 const Board = require('../models/Board');
+const Card = require('../models/Card');
+const fs = require('fs');
+const path = require('path');
 
 // [리스트 생성]
 exports.createList = async (req, res) => {
@@ -43,13 +46,33 @@ exports.updateList = async (req, res) => {
 // [리스트 삭제]
 exports.deleteList = async (req, res) => {
   try {
-    const list = await List.findByIdAndDelete(req.params.id);
-    if (!list) return res.status(404).json({ message: '리스트를 찾을 수 없습니다.' });
-    
-    const Card = require('../models/Card');
-    await Card.deleteMany({ list_id: req.params.id });
+    const { id } = req.params;
 
-    res.status(200).json({ message: '리스트와 포함된 카드들이 삭제되었습니다.' });
+    // 삭제할 리스트에 속한 카드들을 먼저 조회
+    const cards = await Card.find({ list_id: id });
+
+    // 카드들을 돌면서 첨부파일이 있다면 서버에서 삭제
+    for (const card of cards) {
+      if (card.attachments && card.attachments.length > 0) {
+        card.attachments.forEach((file) => {
+
+          const filePath = path.join(__dirname, '..', file.fileUrl.substring(1));
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath); // 실제 파일 삭제
+          }
+        });
+      }
+    }
+
+    // DB에서 해당 리스트의 카드들을 모두 삭제
+    await Card.deleteMany({ list_id: id });
+
+    // 리스트 본체 삭제
+    const list = await List.findByIdAndDelete(id);
+    
+    if (!list) return res.status(404).json({ message: '리스트를 찾을 수 없습니다.' });
+
+    res.status(200).json({ message: '리스트와 포함된 카드, 첨부파일이 모두 삭제되었습니다.' });
   } catch (error) {
     res.status(500).json({ message: '리스트 삭제 실패', error: error.message });
   }

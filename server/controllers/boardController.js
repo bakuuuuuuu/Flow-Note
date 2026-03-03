@@ -2,6 +2,8 @@ const Board = require('../models/Board');
 const List = require('../models/List');
 const Card = require('../models/Card');
 const createNotification = require('../utils/createNotification');
+const fs = require('fs');
+const path = require('path');
 
 // [보드 생성]
 exports.createBoard = async (req, res) => {
@@ -123,25 +125,36 @@ exports.deleteBoard = async (req, res) => {
       return res.status(404).json({ message: '보드를 찾을 수 없거나 권한이 없습니다.' });
     }
 
-    const boardTitle = board.title;
+    // 해당 보드에 속한 모든 카드를 찾아서 파일부터 삭제
+    const cards = await Card.find({ board_id: id });
+    
+    for (const card of cards) {
+      if (card.attachments && card.attachments.length > 0) {
+        card.attachments.forEach(file => {
+          const filePath = path.join(__dirname, '..', file.fileUrl.substring(1));
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+          }
+        });
+      }
+    }
 
-    const lists = await List.find({ board_id: id });
-    const listIds = lists.map(list => list._id);
-    await Card.deleteMany({ list_id: { $in: listIds } });
+    // DB 데이터 삭제 (카드 -> 리스트 -> 보드 순)
+    await Card.deleteMany({ board_id: id });
     await List.deleteMany({ board_id: id });
+    await Board.findByIdAndDelete(id);
 
+    // 알림 생성
     await createNotification({
       user_id: req.user._id,
       category: 'SYSTEM',
       type: 'board_deleted',
       title: '보드 삭제 완료',
-      content: `'${boardTitle}' 보드와 모든 관련 데이터가 삭제되었습니다.`,
+      content: `'${board.title}' 보드와 모든 관련 파일이 삭제되었습니다.`,
       link_url: `/boards`
     });
 
-    await Board.findByIdAndDelete(id);
-
-    res.status(200).json({ message: '보드와 관련된 모든 데이터가 삭제되었습니다.' });
+    res.status(200).json({ message: '보드와 관련된 모든 데이터 및 파일이 삭제되었습니다.' });
   } catch (error) {
     res.status(500).json({ message: '보드 삭제 실패', error: error.message });
   }
