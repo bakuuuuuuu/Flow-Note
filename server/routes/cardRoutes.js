@@ -4,18 +4,20 @@ const cardController = require('../controllers/cardController');
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../utils/upload');
 const resizeImage = require('../middleware/imageResize');
+const validate = require('../middleware/validate'); 
+const { cardSchema, updateCardSchema } = require('../validators/cardValidator');
 
 // [POST] 카드 생성
-router.post('/', protect, cardController.createCard);
+router.post('/', protect, validate(cardSchema), cardController.createCard);
 
 // [PATCH] 카드 수정
-router.patch('/:id', protect, cardController.updateCard);
+router.patch('/:id', protect, validate(updateCardSchema), cardController.updateCard);
 
 // [DELETE] 카드 삭제
 router.delete('/:id', protect, cardController.deleteCard);
 
 // [PATCH] 카드 이동
-router.patch('/:cardId/move', protect, cardController.moveCard);
+router.patch('/:cardId/move', protect, validate(updateCardSchema), cardController.moveCard);
 
 // [GET] 카드 상세 조회
 router.get('/:id', protect, cardController.getCardById);

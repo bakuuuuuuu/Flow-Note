@@ -11,6 +11,7 @@ const listRoutes = require('./routes/listRoutes');
 const cardRoutes = require('./routes/cardRoutes');
 const activityRoutes = require('./routes/activityRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const searchRoutes = require('./routes/searchRoutes');
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use('/api/lists', listRoutes);
 app.use('/api/cards', cardRoutes);
 app.use('/api/activities', activityRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/search', searchRoutes);
 
 // DB 연결
 mongoose.connect(process.env.MONGO_URI)
