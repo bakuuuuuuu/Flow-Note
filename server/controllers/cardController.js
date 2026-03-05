@@ -81,9 +81,16 @@ exports.createCard = async (req, res) => {
 exports.updateCard = async (req, res) => {
   try {
     const cardId = req.params.id;
+    
+    // 마감일(due_date)이 수정되면 알림 발송 상태를 false로 초기화
+    const updateData = { ...req.body };
+    if (updateData.due_date) {
+      updateData.is_notified = false;
+    }
+
     const updatedCard = await Card.findByIdAndUpdate(
       cardId,
-      { $set: req.body },
+      { $set: updateData },
       { new: true } 
     );
 

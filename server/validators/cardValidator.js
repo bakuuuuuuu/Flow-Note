@@ -9,6 +9,7 @@ const cardSchema = Joi.object({
   content: Joi.string().allow('', null),
   due_date: Joi.date().iso().allow(null, ''),
   remind_before: Joi.number().min(0).default(0),
+  is_notified: Joi.boolean().default(false),
   status: Joi.string().valid('대기', '진행중', '완료', '보류'),
   priority: Joi.string().valid('긴급', '높음', '보통', '낮음'),
   pos: Joi.number(),
