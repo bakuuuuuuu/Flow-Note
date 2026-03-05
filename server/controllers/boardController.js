@@ -22,16 +22,6 @@ exports.createBoard = async (req, res) => {
 
     const savedBoard = await newBoard.save();
 
-    // 보드 생성 알림
-    await createNotification({
-      user_id: req.user._id,
-      category: 'SYSTEM',
-      type: 'board_created',
-      title: '새 보드 생성',
-      content: `'${title}' 보드가 생성되었습니다. 프로젝트를 시작해보세요!`,
-      link_url: `/boards/${savedBoard._id}`
-    });
-
     res.status(201).json(savedBoard);
   } catch (error) {
     res.status(500).json({ message: '보드 생성 중 에러 발생', error: error.message });
@@ -99,16 +89,6 @@ exports.updateBoard = async (req, res) => {
 
     const updatedBoard = await board.save();
 
-    // 보드 수정 알림
-    await createNotification({
-      user_id: req.user._id,
-      category: 'SYSTEM',
-      type: 'board_updated',
-      title: '보드 정보 수정',
-      content: `'${updatedBoard.title}' 보드 정보가 업데이트되었습니다.`,
-      link_url: `/boards/${updatedBoard._id}`
-    });
-
     res.status(200).json(updatedBoard);
   } catch (error) {
     res.status(500).json({ message: '보드 수정 실패', error: error.message });
@@ -143,16 +123,6 @@ exports.deleteBoard = async (req, res) => {
     await Card.deleteMany({ board_id: id });
     await List.deleteMany({ board_id: id });
     await Board.findByIdAndDelete(id);
-
-    // 알림 생성
-    await createNotification({
-      user_id: req.user._id,
-      category: 'SYSTEM',
-      type: 'board_deleted',
-      title: '보드 삭제 완료',
-      content: `'${board.title}' 보드와 모든 관련 파일이 삭제되었습니다.`,
-      link_url: `/boards`
-    });
 
     res.status(200).json({ message: '보드와 관련된 모든 데이터 및 파일이 삭제되었습니다.' });
   } catch (error) {

@@ -33,6 +33,23 @@ exports.markAsRead = async (req, res) => {
   }
 };
 
+// [알림 일괄 읽음 표시]
+exports.markAllAsRead = async (req, res) => {
+  try {
+    const result = await Notification.updateMany(
+      { user_id: req.user._id, is_read: false },
+      { $set: { is_read: true } }
+    );
+
+    res.status(200).json({ 
+      message: '모든 알림을 읽음 처리했습니다.', 
+      modifiedCount: result.modifiedCount 
+    });
+  } catch (error) {
+    res.status(500).json({ message: '알림 일괄 업데이트 실패', error: error.message });
+  }
+};
+
 // [알림 개별 삭제]
 exports.deleteNotification = async (req, res) => {
   try {
