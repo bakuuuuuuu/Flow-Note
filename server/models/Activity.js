@@ -1,35 +1,51 @@
 const mongoose = require('mongoose');
 
 const activitySchema = new mongoose.Schema({
-  // 보드 특정
   board_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Board',
     required: true
   },
-  // 카드 특정
   card_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Card'
   },
-  // 수정자 특정
   user_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true 
   },
-  // 수정 형태
+  
+  action_type: {
+    type: String,
+    required: true,
+    enum: {
+      values: ['CREATE', 'UPDATE', 'DELETE', 'MOVE', 'ATTACHMENT', 'ATTACHMENT_DELETE'],
+      message: '{VALUE}는 유효하지 않은 활동 타입입니다.'
+    },
+    uppercase: true
+  }, 
+  
   action: {
     type: String,
     required: true
-  },
-  // 구체적인 변경 내용
+  }, 
+  
   details: {
     type: String,
     default: ""
+  },
+  
+  field: {
+    type: String
+  }, 
+  old_value: {
+    type: mongoose.Schema.Types.Mixed
+  },
+  new_value: {
+    type: mongoose.Schema.Types.Mixed
   }
 }, {
-  // 수정 시각
   timestamps: true 
 });
 

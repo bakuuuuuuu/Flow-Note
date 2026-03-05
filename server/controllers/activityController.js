@@ -4,10 +4,14 @@ const Activity = require('../models/Activity');
 exports.getBoardActivities = async (req, res) => {
   try {
     const { boardId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = 20;
 
     const activities = await Activity.find({ board_id: boardId })
       .populate('user_id', 'name email profile_img')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
 
     res.status(200).json(activities);
   } catch (error) {
