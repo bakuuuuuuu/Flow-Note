@@ -13,7 +13,7 @@ exports.getMyNotifications = async (req, res) => {
   }
 };
 
-// [알림 읽음 표시]
+// [개별 알림 읽음 표시]
 exports.markAsRead = async (req, res) => {
   try {
     const { id } = req.params;
