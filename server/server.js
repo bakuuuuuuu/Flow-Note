@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
+require('./utils/scheduler');
 
 // 라우터 파일 불러오기
 const userRoutes = require('./routes/userRoutes');

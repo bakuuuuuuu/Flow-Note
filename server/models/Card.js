@@ -19,6 +19,7 @@ const cardSchema = new mongoose.Schema({
   // 일정 및 알림
   due_date: { type: Date },
   remind_before: { type: Number, default: 0 },
+  is_notified: { type: Boolean, default: false },
   
   // 정렬 및 상태
   pos: { type: Number, required: true, default: 65535 },
