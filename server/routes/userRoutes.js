@@ -13,6 +13,12 @@ router.post('/register', validate(registerSchema), userController.registerUser);
 // [POST] 로그인
 router.post('/login', validate(loginSchema), userController.loginUser);
 
+// [POST] 비밀번호 변경 요청
+router.post('/forgot-password', userController.forgotPassword);
+
+// [PATCH] 비밀번호 변경
+router.patch('/reset-password/:token', userController.resetPassword);
+
 // [GET] 내 프로필 보기 (로그인한 사람만 가능)
 router.get('/profile', protect, userController.getUserProfile);
 
