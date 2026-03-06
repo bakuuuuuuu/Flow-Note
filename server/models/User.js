@@ -43,7 +43,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: "default_profile.png" 
   },
-  // 상태 메시지 (UI 대시보드용)
   status_message: {
     type: String,
     maxlength: 50,
@@ -59,8 +58,10 @@ const userSchema = new mongoose.Schema({
       default: true
     }
   },
+  
+  resetPasswordToken: String,
+  resetPasswordExpires: Date
 }, {
-  // 생성 및 수정 시간 자동 기록
   timestamps: true 
 });
 
