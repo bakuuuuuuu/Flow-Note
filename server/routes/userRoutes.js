@@ -13,6 +13,12 @@ router.post('/register', validate(registerSchema), userController.registerUser);
 // [POST] 로그인
 router.post('/login', validate(loginSchema), userController.loginUser);
 
+// [POST] 토큰 재발급 (쿠키의 Refresh Token 사용)
+router.post('/refresh', userController.refreshToken);
+
+// [POST] 로그아웃
+router.post('/logout', userController.logoutUser);
+
 // [POST] 비밀번호 변경 요청
 router.post('/forgot-password', userController.forgotPassword);
 

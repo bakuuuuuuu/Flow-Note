@@ -83,15 +83,31 @@ exports.loginUser = async (req, res) => {
       return res.status(400).json({ message: '비밀번호가 틀렸습니다.' });
     }
 
-    const token = jwt.sign(
+    // Access Token 발급 (단기 - 15분)
+    const accessToken = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET,
-      { expiresIn: '1d' }
+      { expiresIn: '15m' }
     );
+
+    // Refresh Token 발급 (장기 - 7일)
+    const refreshToken = jwt.sign(
+      { id: user._id },
+      process.env.JWT_REFRESH_SECRET || 'flow_note_refresh_key_2024',
+      { expiresIn: '7d' }
+    );
+
+    // Refresh Token을 보안 쿠키(HttpOnly)에 저장
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true, // 클라이언트 자바스크립트에서 접근 불가 (보안)
+      secure: process.env.NODE_ENV === 'production', // 배포 환경(HTTPS)에서만 전송
+      sameSite: 'Lax', // CSRF 공격 방지
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7일 유지
+    });
 
     res.status(200).json({
       message: '로그인 성공!',
-      token,
+      accessToken, // 클라이언트는 메모리에 저장
       user: {
         id: user._id,
         email: user.email,
@@ -102,6 +118,40 @@ exports.loginUser = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: '서버 에러 발생', error: error.message });
   }
+};
+
+// Refresh Token를 통한 Access Token 재발급
+exports.refreshToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({ message: '로그인이 필요합니다.' });
+    }
+
+    // Refresh Token 검증
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || 'flow_note_refresh_key_2024');
+    
+    // 검증 성공 시 새로운 Access Token 생성
+    const newAccessToken = jwt.sign(
+      { id: decoded.id },
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' }
+    );
+
+    res.status(200).json({ accessToken: newAccessToken });
+  } catch (error) {
+    res.status(403).json({ message: '유효하지 않은 토큰입니다. 다시 로그인해주세요.' });
+  }
+};
+
+// [로그아웃]
+exports.logoutUser = async (req, res) => {
+  res.clearCookie('refreshToken', {
+    httpOnly: true,
+    sameSite: 'Lax'
+  });
+  res.status(200).json({ message: '로그아웃 되었습니다.' });
 };
 
 // [비밀번호 재설정 메일 발송]
@@ -115,16 +165,16 @@ exports.forgotPassword = async (req, res) => {
       return res.status(404).json({ message: '일치하는 유저 정보가 없습니다.' });
     }
 
-    // 1. 랜덤 토큰 생성
+    // 랜덤 토큰 생성
     const resetToken = crypto.randomBytes(20).toString('hex');
 
-    // 2. 토큰 해싱하여 DB 저장 및 만료시간(1시간) 설정
+    // 토큰 해싱하여 DB 저장 및 만료시간(1시간) 설정
     user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
     user.resetPasswordExpires = Date.now() + 3600000; 
 
     await user.save();
 
-    // 3. 메일 전송 설정
+    // 메일 전송 설정
     const transporter = nodemailer.createTransport({
       service: 'Gmail',
       auth: {
