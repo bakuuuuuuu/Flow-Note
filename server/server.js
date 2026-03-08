@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
 require('./utils/scheduler');
 
@@ -17,7 +18,12 @@ const searchRoutes = require('./routes/searchRoutes');
 const app = express();
 
 // 미들웨어 설정
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', 
+  credentials: true 
+}));
+
+app.use(cookieParser());
 app.use(express.json());
 
 // 정적 파일 제공 설정
