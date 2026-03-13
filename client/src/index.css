@@ -1,3 +1,220 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* ─── Brand ─────────────────────────────── */
+  --color-brand: #2d408e;
+  --color-brand-hover: #243370;
+
+  /* ─── 라이트모드 배경 ────────────────────── */
+  --color-bg: #f1f3f5;
+  --color-surface: #ffffff;
+  --color-surface-2: #f8f9fa;
+  --color-header-bg: rgba(255,255,255,0.75);
+  --color-sidebar-bg: rgba(255,255,255,0.65);
+
+  /* ─── 라이트모드 텍스트 ─────────────────── */
+  --color-text-primary: #212529;
+  --color-text-secondary: #495057;
+  --color-text-muted: #868e96;
+
+  /* ─── 라이트모드 보더 ────────────────────── */
+  --color-border: #dee2e6;
+  --color-border-subtle: rgba(0,0,0,0.08);
+
+  /* ─── 다크모드 배경 ─────────────────────── */
+  --color-dark-bg: #0f0f10;
+  --color-dark-surface: #1c1c1e;
+  --color-dark-surface-2: #2c2c2e;
+  --color-dark-header-bg: rgba(28,28,30,0.8);
+  --color-dark-sidebar-bg: rgba(0,0,0,0.5);
+
+  /* ─── 다크모드 텍스트 ────────────────────── */
+  --color-dark-text-primary: #ffffff;
+  --color-dark-text-secondary: rgba(255,255,255,0.7);
+  --color-dark-text-muted: rgba(255,255,255,0.4);
+
+  /* ─── 다크모드 보더 ─────────────────────── */
+  --color-dark-border: #3a3a3c;
+  --color-dark-border-subtle: rgba(255,255,255,0.15);
+
+  /* ─── 인증 화면 전용 ────────────────────── */
+  --color-auth-input-bg: rgba(255,255,255,0.1);
+  --color-auth-input-border: rgba(255,255,255,0.4);
+  --color-auth-link: #93c5fd;
+
+  /* ─── 상태 색상 ─────────────────────────── */
+  --color-status-todo: #94a3b8;
+  --color-status-doing: #f59e0b;
+  --color-status-done: #10b981;
+  --color-status-hold: #ef4444;
+  --color-status-deadline: #e03131;
+
+  /* ─── 라벨 색상 ─────────────────────────── */
+  --color-label-blue: #3b82f6;
+  --color-label-green: #10b981;
+  --color-label-yellow: #f59e0b;
+  --color-label-purple: #8b5cf6;
+  --color-label-red: #ef4444;
+
+  /* ─── 폰트 ──────────────────────────────── */
+  --font-sans: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
+
+  /* ─── 애니메이션 ────────────────────────── */
+  --animate-fade-in: fadeIn 0.2s ease-out;
+  --animate-slide-up: slideUp 0.25s ease-out;
+  --animate-slide-down: slideDown 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  scrollbar-gutter: stable both-edges;
+}
+
+/* =====================================================
+   인증 화면 공통 스타일 (AuthLayout 하위 모든 페이지)
+   ===================================================== */
+
+/* ── 입력 필드 ── */
+.auth-input {
+  height: clamp(44px, 3.6vw, 52px);
+  background: var(--color-auth-input-bg);
+  border: 1px solid var(--color-auth-input-border);
+  border-radius: 8px;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  color: white;
+  font-size: clamp(14px, 1.1vw, 16px);
+  letter-spacing: -0.16px;
+  transition: border-color 0.15s;
+  cursor: text;
+  width: 100%;
+  flex-shrink: 0;
+}
+.auth-input::placeholder {
+  color: var(--color-dark-text-muted);
+}
+.auth-input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px rgba(20, 20, 40, 0.95) inset;
+  -webkit-text-fill-color: white;
+}
+.auth-input:focus {
+  border-color: rgba(255, 255, 255, 0.8);
+  outline: none;
+}
+
+/* ── 메인 버튼 (로그인 / 시작하기 / 전송 / 변경) ── */
+.auth-btn {
+  height: clamp(48px, 3.9vw, 56px);
+  width: 100%;
+  border-radius: 8px;
+  border: none;
+  background: var(--color-brand);
+  color: white;
+  font-weight: 600;
+  font-size: clamp(14px, 1.1vw, 16px);
+  letter-spacing: 0.05em;
+  box-shadow: 0px 10px 20px -5px rgba(0, 0, 0, 0.25);
+  transition: background 0.15s;
+  cursor: pointer;
+}
+.auth-btn:hover:not(:disabled) {
+  background: var(--color-brand-hover);
+}
+.auth-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── 눈 아이콘 버튼 ── */
+.eye-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.45);
+  padding: 0;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+.eye-btn:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ── 성별 버튼 ── */
+.gender-btn {
+  height: clamp(44px, 3.6vw, 52px);
+  flex: 1;
+  border-radius: 8px;
+  background: var(--color-auth-input-bg);
+  border: 1px solid var(--color-auth-input-border);
+  color: white;
+  font-weight: 500;
+  font-size: clamp(14px, 1.1vw, 16px);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.gender-btn.active {
+  background: var(--color-brand);
+  border-color: var(--color-brand);
+}
+
+/* ── 소셜 버튼 ── */
+.social-btn {
+  width: clamp(40px, 3.3vw, 48px);
+  height: clamp(40px, 3.3vw, 48px);
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.social-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ── 회원가입 입력 스크롤 영역 ── */
+.input-scroll {
+  height: clamp(260px, 34vw, 310px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 0.9vw, 12px);
+  padding-right: 6px;
+  width: 100%;
+}
+.input-scroll::-webkit-scrollbar { width: 4px; }
+.input-scroll::-webkit-scrollbar-track { background: transparent; }
+.input-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.25); border-radius: 4px; }
+.input-scroll::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.45); }

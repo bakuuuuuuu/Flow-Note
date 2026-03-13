@@ -7,6 +7,9 @@ const resizeImage = require('../middleware/imageResize');
 const validate = require('../middleware/validate');
 const { registerSchema, loginSchema } = require('../validators/userValidator');
 
+// [GET] 닉네임 중복 확인
+router.get('/check-nickname', userController.checkNickname);
+
 // [POST] 회원가입
 router.post('/register', validate(registerSchema), userController.registerUser);
 
