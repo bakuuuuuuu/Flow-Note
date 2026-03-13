@@ -6,10 +6,34 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const { registerSchema, loginSchema, resetPasswordSchema } = require('../validators/userValidator');
+
+// [닉네임 중복 확인]
+exports.checkNickname = async (req, res) => {
+  try {
+    const { nickname } = req.query;
+    if (!nickname || !nickname.trim()) {
+      return res.status(400).json({ message: '닉네임을 입력해주세요.' });
+    }
+    const exists = await User.findOne({ nickname: nickname.trim() });
+    if (exists) {
+      return res.status(409).json({ message: '이미 사용 중인 닉네임입니다.' });
+    }
+    res.status(200).json({ message: '사용 가능한 닉네임입니다.' });
+  } catch (error) {
+    res.status(500).json({ message: '서버 에러 발생', error: error.message });
+  }
+};
 
 // [회원가입]
 exports.registerUser = async (req, res) => {
   try {
+    // 입력값 유효성 검사
+    const { error } = registerSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
     const { email, password, nickname, name, gender, birthdate, phone } = req.body;
 
     // 이메일 중복 확인
@@ -71,6 +95,12 @@ exports.registerUser = async (req, res) => {
 // [로그인]
 exports.loginUser = async (req, res) => {
   try {
+    // 입력값 유효성 검사
+    const { error } = loginSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
@@ -211,6 +241,12 @@ exports.forgotPassword = async (req, res) => {
 // [비밀번호 실제 재설정]
 exports.resetPassword = async (req, res) => {
   try {
+    // 새 비밀번호 유효성 검사 (회원가입과 동일한 조건 적용)
+    const { error } = resetPasswordSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
     const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
 
     const user = await User.findOne({
