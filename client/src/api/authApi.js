@@ -1,3 +1,4 @@
+import axios from 'axios'
 import api from './axios'
 
 // [닉네임 중복 확인]
@@ -12,8 +13,8 @@ export const login = (data) => api.post('/users/login', data)
 // [로그아웃]
 export const logout = () => api.post('/users/logout')
 
-// [토큰 재발급]
-export const refreshToken = () => api.post('/users/refresh')
+// [토큰 재발급] 
+export const refreshToken = () => axios.post('/api/users/refresh', {}, { withCredentials: true })
 
 // [비밀번호 찾기 메일 발송]
 export const forgotPassword = (data) => api.post('/users/forgot-password', data)
@@ -25,7 +26,7 @@ export const resetPassword = (token, data) => api.patch(`/users/reset-password/$
 export const getProfile = () => api.get('/users/profile')
 
 // [프로필 이미지 업데이트]
-export const updateProfileImage = (formData) => api.patch('/users/profile/image', formData, { headers: { 'Content-Type': 'multipart/form-data' }, })
+export const updateProfileImage = (formData) => api.patch('/users/profile/image', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
 
 // [프로필 이미지 삭제]
 export const deleteProfileImage = () => api.delete('/users/profile/image')
