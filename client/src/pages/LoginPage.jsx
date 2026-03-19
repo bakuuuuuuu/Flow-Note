@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { login } from '../api/authApi'
 import useAuthStore from '../store/authStore'
 import SocialButtons from '../components/common/SocialButtons'
-
+import toast from 'react-hot-toast'
 
 const LoginPage = () => {
   const navigate = useNavigate()
@@ -15,20 +15,24 @@ const LoginPage = () => {
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const handleSubmit = async () => {
     setError('')
     setLoading(true)
     try {
       const { data } = await login(form)
       setAccessToken(data.accessToken)
       setUser(data.user)
+      toast.success('로그인 되었습니다 👋')
       navigate('/home')
     } catch (err) {
       setError(err.response?.data?.message || '로그인에 실패했습니다.')
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') handleSubmit()
   }
 
   return (
@@ -55,6 +59,7 @@ const LoginPage = () => {
             placeholder="이메일"
             value={form.email}
             onChange={handleChange}
+            onKeyDown={handleKeyDown}
             className="auth-input"
           />
           <input
@@ -63,6 +68,7 @@ const LoginPage = () => {
             placeholder="비밀번호"
             value={form.password}
             onChange={handleChange}
+            onKeyDown={handleKeyDown}
             className="auth-input"
           />
         </div>

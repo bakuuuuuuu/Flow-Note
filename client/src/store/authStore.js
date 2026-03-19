@@ -4,12 +4,15 @@ const useAuthStore = create((set) => ({
   accessToken: null,
   user: null,
   isLoggedIn: false,
+  justLoggedIn: false,
 
-  setAccessToken: (token) => set({ accessToken: token, isLoggedIn: !!token }),
+  setAccessToken: (token) => set({ accessToken: token, isLoggedIn: !!token, justLoggedIn: !!token }),
 
   setUser: (user) => set({ user }),
 
-  logout: () => set({ accessToken: null, user: null, isLoggedIn: false }),
+  setJustLoggedIn: (val) => set({ justLoggedIn: val }), 
+
+  logout: () => set({ accessToken: null, user: null, isLoggedIn: false, justLoggedIn: false }),
 }))
 
 export default useAuthStore

@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 
 const boardSchema = new mongoose.Schema({
-  // 보드 기본 정보
   title: {
     type: String,
     required: true,
@@ -9,29 +8,25 @@ const boardSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['신규 프로젝트', '운영', '기획', '런칭', '자기계발', '기타'],
+    enum: ['프로젝트', '개발', '업무', '학습', '아이디어', '노트', '일정', '일상', '재정', '운동', '여행', '기타'],
     default: '기타'
   },
-  is_starred: { 
+  is_starred: {
     type: Boolean,
     default: false
   },
-  deadline: { 
+  deadline: {
     type: Date
   },
-  bg_theme: { 
-    type: String, 
-    default: 'default-theme' 
+  bg_theme: {
+    type: String,
+    default: 'default-theme'
   },
-
-  // 소유자 정보
   owner_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
   },
-  
-  // 협업 멤버 (추후 확장을 위함)
   members: [
     {
       user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -39,7 +34,7 @@ const boardSchema = new mongoose.Schema({
     }
   ]
 }, {
-  timestamps: true 
+  timestamps: true
 });
 
 module.exports = mongoose.model('Board', boardSchema);

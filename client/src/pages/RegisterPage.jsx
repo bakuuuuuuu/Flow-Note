@@ -4,6 +4,7 @@ import { register, checkNickname } from '../api/authApi'
 import useAuthStore from '../store/authStore'
 import SocialButtons from '../components/common/SocialButtons'
 import EyeToggle from '../components/common/EyeToggle'
+import toast from 'react-hot-toast'
 
 const RegisterPage = () => {
   const navigate = useNavigate()
@@ -64,6 +65,7 @@ const RegisterPage = () => {
       const { data } = await register(submitData)
       setAccessToken(data.accessToken)
       setUser(data.user)
+      toast.success('회원가입이 완료되었습니다 🎉')
       navigate('/home')
     } catch (err) {
       setError(err.response?.data?.message || '회원가입에 실패했습니다.')
@@ -184,13 +186,14 @@ const RegisterPage = () => {
             <p className="text-red-400 text-xs" style={{ marginTop: '-4px', flexShrink: 0 }}>비밀번호가 일치하지 않습니다.</p>
           )}
 
-          {/* 전화번호 */}
+          {/* 전화번호 — 엔터 시 제출 */}
           <input
             name="phone" type="text" placeholder="전화번호 (010-0000-0000)"
             value={form.phone} onChange={handlePhone} maxLength={13}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit() }}
             className="auth-input"
           />
-        </div>{/* /input-scroll */}
+        </div>
 
         {/* ── 이용약관 ── */}
         <label
