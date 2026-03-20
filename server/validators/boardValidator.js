@@ -16,7 +16,27 @@ const boardSchema = Joi.object({
       user_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
       role: Joi.string().valid('admin', 'editor', 'viewer').default('viewer')
     })
-  ).allow(null)
-});
+  ).allow(null),
+  lists: Joi.array().items(
+    Joi.string().min(1).max(50).trim()
+  ).min(1).max(10).default(['할 일', '진행 중', '완료'])
+})
 
-module.exports = { boardSchema };
+const updateBoardSchema = Joi.object({
+  title: Joi.string().min(1).max(50).trim().messages({
+    'string.empty': '보드 제목은 필수입니다.',
+  }),
+  category: Joi.string()
+    .valid('프로젝트', '개발', '업무', '학습', '아이디어', '노트', '일정', '일상', '재정', '운동', '여행', '기타'),
+  deadline: Joi.date().iso().allow(null, ''),
+  bg_theme: Joi.string(),
+  is_starred: Joi.boolean(),
+  members: Joi.array().items(
+    Joi.object({
+      user_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
+      role: Joi.string().valid('admin', 'editor', 'viewer').default('viewer')
+    })
+  ).allow(null)
+})
+
+module.exports = { boardSchema, updateBoardSchema }

@@ -20,9 +20,8 @@ const MainLogoButton = () => {
         style={{
           fontSize: '24px',
           transform: 'translateY(-2px)',
-          color: isDark
-            ? 'var(--color-dark-text-primary)'
-            : 'var(--color-text-primary)',
+          color: 'var(--color-brand)',
+          letterSpacing: '-0.5px',
         }}
       >
         Flow-Note
