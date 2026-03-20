@@ -3,12 +3,12 @@ import { getBoards, getBoardById, createBoard, updateBoard, deleteBoard } from '
 
 const useBoardStore = create((set, get) => ({
   // ── 상태 ──
-  boards: [],           // 보드 목록
-  currentBoard: null,   // 현재 열려있는 보드
+  boards: [],
+  currentBoard: null,
   loading: false,
   error: null,
 
-  // ── 보드 목록 조회 ──
+  // [보드 목록 조회]
   fetchBoards: async () => {
     set({ loading: true, error: null })
     try {
@@ -21,7 +21,7 @@ const useBoardStore = create((set, get) => ({
     }
   },
 
-  // ── 특정 보드 상세 조회 ──
+  // [특정 보드 상세 조회]
   fetchBoardById: async (id) => {
     set({ loading: true, error: null })
     try {
@@ -34,7 +34,7 @@ const useBoardStore = create((set, get) => ({
     }
   },
 
-  // ── 보드 생성 ──
+  // [보드 생성]
   addBoard: async (boardData) => {
     try {
       const { data } = await createBoard(boardData)
@@ -46,7 +46,7 @@ const useBoardStore = create((set, get) => ({
     }
   },
 
-  // ── 보드 수정 ──
+  // [보드 수정]
   editBoard: async (id, boardData) => {
     try {
       const { data } = await updateBoard(id, boardData)
@@ -61,7 +61,7 @@ const useBoardStore = create((set, get) => ({
     }
   },
 
-  // ── 보드 삭제 ──
+  // [보드 삭제]
   removeBoard: async (id) => {
     try {
       await deleteBoard(id)
@@ -75,7 +75,7 @@ const useBoardStore = create((set, get) => ({
     }
   },
 
-  // ── 현재 보드 초기화 ──
+  // [현재 보드 초기화]
   clearCurrentBoard: () => set({ currentBoard: null }),
 }))
 
