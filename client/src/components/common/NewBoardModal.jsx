@@ -1,11 +1,14 @@
 import { useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Plus, X } from 'lucide-react'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import { ko } from 'date-fns/locale'
 import Modal from './Modal'
 import useBoardStore from '../../store/boardStore'
 import { CATEGORIES } from '../../constants/categories'
+
+const DEFAULT_LISTS = ['할 일', '진행 중', '완료']
+const MAX_LISTS = 10
 
 const NewBoardModal = ({ isOpen, onClose, onSuccess }) => {
   const { addBoard } = useBoardStore()
@@ -16,6 +19,7 @@ const NewBoardModal = ({ isOpen, onClose, onSuccess }) => {
     categoryEmoji: CATEGORIES[0].emoji,
     deadline: null,
   })
+  const [lists, setLists] = useState([...DEFAULT_LISTS])
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -25,10 +29,29 @@ const NewBoardModal = ({ isOpen, onClose, onSuccess }) => {
     setDropdownOpen(false)
   }
 
+  const handleListChange = (index, value) => {
+    setLists((prev) => prev.map((l, i) => i === index ? value : l))
+  }
+
+  const handleAddList = () => {
+    if (lists.length >= MAX_LISTS) return
+    setLists((prev) => [...prev, ''])
+  }
+
+  const handleRemoveList = (index) => {
+    if (lists.length <= 1) return
+    setLists((prev) => prev.filter((_, i) => i !== index))
+  }
+
   const handleSubmit = async () => {
     setError('')
     if (!form.title.trim()) {
       setError('보드 이름을 입력해주세요.')
+      return
+    }
+    const filteredLists = lists.map((l) => l.trim()).filter(Boolean)
+    if (filteredLists.length === 0) {
+      setError('리스트를 최소 1개 입력해주세요.')
       return
     }
     setLoading(true)
@@ -37,9 +60,9 @@ const NewBoardModal = ({ isOpen, onClose, onSuccess }) => {
         title: form.title.trim(),
         category: form.category,
         deadline: form.deadline ? form.deadline.toISOString() : null,
+        lists: filteredLists,
       })
-      setForm({ title: '', category: CATEGORIES[0].label, categoryEmoji: CATEGORIES[0].emoji, deadline: null })
-      onClose()
+      handleClose()
       if (onSuccess) onSuccess(newBoard)
     } catch {
       setError('보드 생성에 실패했어요. 다시 시도해주세요.')
@@ -50,6 +73,7 @@ const NewBoardModal = ({ isOpen, onClose, onSuccess }) => {
 
   const handleClose = () => {
     setForm({ title: '', category: CATEGORIES[0].label, categoryEmoji: CATEGORIES[0].emoji, deadline: null })
+    setLists([...DEFAULT_LISTS])
     setError('')
     setDropdownOpen(false)
     onClose()
@@ -69,10 +93,7 @@ const NewBoardModal = ({ isOpen, onClose, onSuccess }) => {
 
         {/* ── 보드 이름 ── */}
         <div className="mb-5">
-          <label
-            className="block text-[15px] font-medium mb-2"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
+          <label className="block text-[15px] font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
             보드 이름
           </label>
           <input
@@ -94,10 +115,7 @@ const NewBoardModal = ({ isOpen, onClose, onSuccess }) => {
 
         {/* ── 카테고리 ── */}
         <div className="mb-5">
-          <label
-            className="block text-[15px] font-medium mb-2"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
+          <label className="block text-[15px] font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
             카테고리
           </label>
           <div className="relative">
@@ -124,8 +142,6 @@ const NewBoardModal = ({ isOpen, onClose, onSuccess }) => {
                 }}
               />
             </button>
-
-            {/* 드롭다운 */}
             {dropdownOpen && (
               <div
                 className="absolute top-[54px] left-0 right-0 rounded-[10px] overflow-y-auto z-10"
@@ -156,11 +172,8 @@ const NewBoardModal = ({ isOpen, onClose, onSuccess }) => {
         </div>
 
         {/* ── 마감일 ── */}
-        <div className="mb-6">
-          <label
-            className="block text-[15px] font-medium mb-2"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
+        <div className="mb-5">
+          <label className="block text-[15px] font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
             마감일
           </label>
           <DatePicker
@@ -174,6 +187,88 @@ const NewBoardModal = ({ isOpen, onClose, onSuccess }) => {
             onFocus={(e) => e.target.style.borderColor = 'var(--color-brand)'}
             onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
           />
+        </div>
+
+        {/* ── 리스트 ── */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-[15px] font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+              리스트
+            </label>
+            <span className="text-[12px]" style={{ color: 'var(--color-text-muted)' }}>
+              {lists.length}/{MAX_LISTS}
+            </span>
+          </div>
+
+          {/* 리스트 입력 — 고정 높이 스크롤 */}
+          <div
+            className="flex flex-col gap-2 overflow-y-auto pr-1"
+            style={{ maxHeight: '180px' }}
+          >
+            {lists.map((list, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder={`리스트 ${index + 1}`}
+                  value={list}
+                  onChange={(e) => handleListChange(index, e.target.value)}
+                  className="flex-1 h-[44px] px-4 rounded-[10px] text-[14px] outline-none transition-colors"
+                  style={{
+                    background: 'var(--color-surface-2)',
+                    border: '1px solid var(--color-border)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = 'var(--color-brand)'}
+                  onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
+                />
+                <button
+                  type="button"
+                  onClick={() => handleRemoveList(index)}
+                  disabled={lists.length <= 1}
+                  className="w-[44px] h-[44px] flex items-center justify-center rounded-[10px] transition-colors flex-shrink-0"
+                  style={{
+                    color: lists.length <= 1 ? 'var(--color-border)' : 'var(--color-text-muted)',
+                    background: 'var(--color-surface-2)',
+                    border: '1px solid var(--color-border)',
+                    cursor: lists.length <= 1 ? 'not-allowed' : 'pointer',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (lists.length > 1) e.currentTarget.style.color = 'var(--color-status-deadline)'
+                  }}
+                  onMouseLeave={(e) => {
+                    if (lists.length > 1) e.currentTarget.style.color = 'var(--color-text-muted)'
+                  }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* 리스트 추가 버튼 — 스크롤 영역 밖 고정 */}
+          {lists.length < MAX_LISTS && (
+            <button
+              type="button"
+              onClick={handleAddList}
+              className="w-full h-[44px] flex items-center justify-center gap-2 rounded-[10px] text-[14px] font-medium transition-colors border border-dashed mt-2"
+              style={{
+                borderColor: 'var(--color-border)',
+                color: 'var(--color-text-muted)',
+                background: 'transparent',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--color-brand)'
+                e.currentTarget.style.color = 'var(--color-brand)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--color-border)'
+                e.currentTarget.style.color = 'var(--color-text-muted)'
+              }}
+            >
+              <Plus size={16} />
+              리스트 추가
+            </button>
+          )}
         </div>
 
         {/* 에러 */}

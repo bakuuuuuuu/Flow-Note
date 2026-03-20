@@ -102,45 +102,46 @@ const MainSidebar = ({ open }) => {
         )}
 
         {/* ── 보드 목록 + 더보기 버튼 (펼쳤을 때만) ── */}
-        {open && (
-          <div className="flex-1 px-4 flex flex-col pb-2">
-            <div className="flex-1 flex flex-col">
-              {visibleBoards.map((board) => (
-                <button
-                  key={board._id}
-                  onClick={() => {
-                    localStorage.setItem('lastBoardId', board._id)
-                    navigate(`/board/${board._id}`)
-                  }}
-                  className="flex-1 flex items-center gap-3 px-3 rounded-[8px] text-[14px] font-medium transition-colors"
-                  style={{
-                    color: isActive(`/board/${board._id}`) ? 'var(--color-brand)' : 'var(--color-text-secondary)',
-                    background: isActive(`/board/${board._id}`) ? 'rgba(45,64,142,0.08)' : 'transparent',
-                  }}
-                  onMouseEnter={(e) => { if (!isActive(`/board/${board._id}`)) e.currentTarget.style.background = 'var(--color-border-subtle)' }}
-                  onMouseLeave={(e) => { if (!isActive(`/board/${board._id}`)) e.currentTarget.style.background = 'transparent' }}
-                >
-                  <span style={{ fontSize: '16px', flexShrink: 0 }}>{getCategoryEmoji(board.category)}</span>
-                  <span className="truncate flex-1 text-left">{board.title}</span>
-                  {board.is_starred && (
-                    <Star size={13} fill="currentColor" style={{ color: '#f59e0b', flexShrink: 0 }} />
-                  )}
-                </button>
-              ))}
-            </div>
+{open && (
+  <div className="flex-1 px-4 flex flex-col pb-2 min-h-0">
+    <div className="flex-1 flex flex-col overflow-y-auto min-h-0">
+      {visibleBoards.map((board) => (
+        <button
+          key={board._id}
+          onClick={() => {
+            localStorage.setItem('lastBoardId', board._id)
+            navigate(`/board/${board._id}`)
+          }}
+          className="flex items-center gap-3 px-3 rounded-[8px] text-[14px] font-medium transition-colors flex-shrink-0"
+          style={{
+            height: '44px',
+            color: isActive(`/board/${board._id}`) ? 'var(--color-brand)' : 'var(--color-text-secondary)',
+            background: isActive(`/board/${board._id}`) ? 'rgba(45,64,142,0.08)' : 'transparent',
+          }}
+          onMouseEnter={(e) => { if (!isActive(`/board/${board._id}`)) e.currentTarget.style.background = 'var(--color-border-subtle)' }}
+          onMouseLeave={(e) => { if (!isActive(`/board/${board._id}`)) e.currentTarget.style.background = 'transparent' }}
+        >
+          <span style={{ fontSize: '16px', flexShrink: 0 }}>{getCategoryEmoji(board.category)}</span>
+          <span className="truncate flex-1 text-left">{board.title}</span>
+          {board.is_starred && (
+            <Star size={13} fill="currentColor" style={{ color: '#f59e0b', flexShrink: 0 }} />
+          )}
+        </button>
+      ))}
+    </div>
 
-            {hasMore && (
-              <button
-                onClick={() => navigate('/home')}
-                className="h-[40px] flex items-center gap-3 px-3 rounded-[8px] text-[14px] font-medium transition-colors hover:bg-[var(--color-border-subtle)]"
-                style={{ color: 'var(--color-text-muted)' }}
-              >
-                <ChevronRight size={18} style={{ flexShrink: 0 }} />
-                <span>{boards.length - SIDEBAR_BOARD_LIMIT}개 더 보기</span>
-              </button>
-            )}
-          </div>
-        )}
+    {hasMore && (
+      <button
+        onClick={() => navigate('/home')}
+        className="h-[40px] flex items-center gap-3 px-3 rounded-[8px] text-[14px] font-medium transition-colors hover:bg-[var(--color-border-subtle)] flex-shrink-0"
+        style={{ color: 'var(--color-text-muted)' }}
+      >
+        <ChevronRight size={18} style={{ flexShrink: 0 }} />
+        <span>{boards.length - SIDEBAR_BOARD_LIMIT}개 더 보기</span>
+      </button>
+    )}
+  </div>
+)}
 
         {/* 접혔을 때 flex-1 여백 채우기 */}
         {!open && <div className="flex-1" />}

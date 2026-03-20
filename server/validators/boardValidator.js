@@ -16,7 +16,10 @@ const boardSchema = Joi.object({
       user_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
       role: Joi.string().valid('admin', 'editor', 'viewer').default('viewer')
     })
-  ).allow(null)
+  ).allow(null),
+  lists: Joi.array().items(
+    Joi.string().min(1).max(50).trim()
+  ).min(1).max(10).default(['할 일', '진행 중', '완료'])
 })
 
 const updateBoardSchema = Joi.object({

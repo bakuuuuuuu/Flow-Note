@@ -5,6 +5,7 @@ import useBoardStore from '../store/boardStore'
 import useListStore from '../store/listStore'
 import { getCategoryEmoji } from '../constants/categories'
 import Modal from '../components/common/Modal'
+import KanbanBoard from '../components/board/KanbanBoard'
 import toast from 'react-hot-toast'
 
 const BoardPage = () => {
@@ -36,16 +37,16 @@ const BoardPage = () => {
 
   const handleToggleStar = async () => {
     try {
-        await editBoard(id, { is_starred: !currentBoard.is_starred })
-        if (!currentBoard.is_starred) {
+      await editBoard(id, { is_starred: !currentBoard.is_starred })
+      if (!currentBoard.is_starred) {
         toast.success('즐겨찾기에 추가됐어요 ⭐')
-        } else {
+      } else {
         toast.success('즐겨찾기에서 제거됐어요')
-        }
+      }
     } catch {
-        toast.error('즐겨찾기 변경에 실패했어요.')
+      toast.error('즐겨찾기 변경에 실패했어요.')
     }
-    }
+  }
 
   const handleDeleteBoard = async () => {
     setDeleteLoading(true)
@@ -83,7 +84,7 @@ const BoardPage = () => {
   const dday = getDdayText(currentBoard.deadline)
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col" style={{ height: 'calc(100vh - 72px)' }}>
 
       {/* ── 제목 영역 ── */}
       <div className="px-10 pt-12 pb-2 flex-shrink-0">
@@ -108,21 +109,21 @@ const BoardPage = () => {
             onClick={() => setDeleteModalOpen(true)}
             className="ml-auto h-[34px] px-4 rounded-[8px] text-[13px] font-medium transition-all cursor-pointer flex items-center gap-2"
             style={{
-                color: 'white',
-                border: '1px solid var(--color-status-deadline)',
-                background: 'var(--color-status-deadline)',
+              color: 'white',
+              border: '1px solid var(--color-status-deadline)',
+              background: 'var(--color-status-deadline)',
             }}
             onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#c92a2a'
-                e.currentTarget.style.color = 'rgba(255,255,255,0.85)'
+              e.currentTarget.style.background = '#c92a2a'
+              e.currentTarget.style.color = 'rgba(255,255,255,0.85)'
             }}
             onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'var(--color-status-deadline)'
-                e.currentTarget.style.color = 'white'
+              e.currentTarget.style.background = 'var(--color-status-deadline)'
+              e.currentTarget.style.color = 'white'
             }}
-            >
+          >
             보드 삭제
-        </button>
+          </button>
         </div>
 
         {/* 즐겨찾기 + 탭 버튼 + 날짜 + Share/Filter/Sort */}
@@ -131,37 +132,37 @@ const BoardPage = () => {
           {/* 즐겨찾기 */}
           <div className="w-[40px] flex items-center justify-center">
             <button
-                onClick={handleToggleStar}
-                className="w-[36px] h-[36px] flex items-center justify-center rounded-[8px] transition-all cursor-pointer"
-                style={{
-                    background: currentBoard.is_starred ? '#f59e0b' : 'transparent',
-                    border: `1px solid ${currentBoard.is_starred ? '#f59e0b' : 'var(--color-border)'}`,
-                    color: currentBoard.is_starred ? 'white' : 'var(--color-text-muted)',
-                }}
-                >
-                <Star size={18} fill={currentBoard.is_starred ? 'currentColor' : 'none'} />
+              onClick={handleToggleStar}
+              className="w-[36px] h-[36px] flex items-center justify-center rounded-[8px] transition-all cursor-pointer"
+              style={{
+                background: currentBoard.is_starred ? '#f59e0b' : 'transparent',
+                border: `1px solid ${currentBoard.is_starred ? '#f59e0b' : 'var(--color-border)'}`,
+                color: currentBoard.is_starred ? 'white' : 'var(--color-text-muted)',
+              }}
+            >
+              <Star size={18} fill={currentBoard.is_starred ? 'currentColor' : 'none'} />
             </button>
           </div>
 
           {/* 탭 버튼 */}
           <div className="flex gap-1">
-          {[
+            {[
               { key: 'board',    label: 'Board' },
               { key: 'calendar', label: 'Calendar' },
-          ].map(({ key, label }) => (
+            ].map(({ key, label }) => (
               <button
-              key={key}
-              onClick={() => setActiveTab(key)}
-              className="w-[96px] h-[36px] rounded-[6px] text-[14px] font-medium border transition-colors"
-              style={{
+                key={key}
+                onClick={() => setActiveTab(key)}
+                className="w-[96px] h-[36px] rounded-[6px] text-[14px] font-medium border transition-colors"
+                style={{
                   background: activeTab === key ? 'var(--color-surface)' : 'transparent',
                   borderColor: 'var(--color-border)',
                   color: activeTab === key ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
-              }}
+                }}
               >
-              {label}
+                {label}
               </button>
-          ))}
+            ))}
           </div>
 
           {/* 마감일 & D-day */}
@@ -200,14 +201,9 @@ const BoardPage = () => {
       </div>
 
       {/* ── 탭 콘텐츠 ── */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 min-h-0">
         {activeTab === 'board' && (
-          <div
-            className="flex items-center justify-center h-full"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            <p className="text-[14px]">칸반 보드 영역 (KanbanBoard)</p>
-          </div>
+          <KanbanBoard onCardClick={() => {}} />
         )}
         {activeTab === 'calendar' && (
           <div
@@ -254,29 +250,29 @@ const BoardPage = () => {
               취소
             </button>
             <button
-                onClick={handleDeleteBoard}
-                disabled={deleteLoading}
-                className="h-[44px] w-[100px] rounded-[10px] text-[14px] font-semibold transition-all cursor-pointer"
-                style={{
-                    background: 'var(--color-status-deadline)',
-                    color: 'white',
-                    border: '1px solid var(--color-status-deadline)',
-                    opacity: deleteLoading ? 0.6 : 1,
-                }}
-                onMouseEnter={(e) => {
-                    if (!deleteLoading) {
-                    e.currentTarget.style.background = '#c92a2a'
-                    e.currentTarget.style.color = 'rgba(255,255,255,0.85)'
-                    }
-                }}
-                onMouseLeave={(e) => {
-                    if (!deleteLoading) {
-                    e.currentTarget.style.background = 'var(--color-status-deadline)'
-                    e.currentTarget.style.color = 'white'
-                    }
-                }}
-                >
-                {deleteLoading ? '삭제 중...' : '삭제'}
+              onClick={handleDeleteBoard}
+              disabled={deleteLoading}
+              className="h-[44px] w-[100px] rounded-[10px] text-[14px] font-semibold transition-all cursor-pointer"
+              style={{
+                background: 'var(--color-status-deadline)',
+                color: 'white',
+                border: '1px solid var(--color-status-deadline)',
+                opacity: deleteLoading ? 0.6 : 1,
+              }}
+              onMouseEnter={(e) => {
+                if (!deleteLoading) {
+                  e.currentTarget.style.background = '#c92a2a'
+                  e.currentTarget.style.color = 'rgba(255,255,255,0.85)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!deleteLoading) {
+                  e.currentTarget.style.background = 'var(--color-status-deadline)'
+                  e.currentTarget.style.color = 'white'
+                }
+              }}
+            >
+              {deleteLoading ? '삭제 중...' : '삭제'}
             </button>
           </div>
         </div>
