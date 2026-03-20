@@ -11,6 +11,7 @@ import RegisterPage from './pages/RegisterPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import BoardListPage from './pages/BoardListPage'
+import BoardPage from './pages/BoardPage'
 
 const PrivateRoute = ({ children }) => {
   const { isLoggedIn } = useAuthStore()
@@ -70,7 +71,7 @@ function App() {
           <Route path="/home"      element={<BoardListPage mode="all" />} />
           <Route path="/priority"  element={<BoardListPage mode="priority" />} />
           <Route path="/starred"   element={<BoardListPage mode="starred" />} />
-          <Route path="/board/:id" element={<div>보드 준비중</div>} />
+          <Route path="/board/:id" element={<BoardPage />} />
           <Route path="/search"    element={<div>검색 준비중</div>} />
           <Route path="/mypage"    element={<div>마이페이지 준비중</div>} />
         </Route>

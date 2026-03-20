@@ -3,7 +3,7 @@ const router = express.Router();
 const { protect } = require('../middleware/authMiddleware');
 const boardController = require('../controllers/boardController');
 const validate = require('../middleware/validate');
-const { boardSchema } = require('../validators/boardValidator');
+const { boardSchema, updateBoardSchema } = require('../validators/boardValidator')
 
 // [POST] 보드 생성
 router.post('/', protect, validate(boardSchema), boardController.createBoard);
@@ -15,7 +15,7 @@ router.get('/', protect, boardController.getBoards);
 router.get('/:id', protect, boardController.getBoardById);
 
 // [PATCH] 보드 정보 수정
-router.patch('/:id', protect, validate(boardSchema), boardController.updateBoard);
+router.patch('/:id', protect, validate(updateBoardSchema), boardController.updateBoard);
 
 // [DELETE] 보드 삭제
 router.delete('/:id', protect, boardController.deleteBoard);
