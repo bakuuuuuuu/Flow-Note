@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Star, Pencil, Share2, Filter, ArrowUpDown } from 'lucide-react'
+import { Star, SquarePen , Share2, Filter, ArrowUpDown } from 'lucide-react'
 import useBoardStore from '../store/boardStore'
 import useListStore from '../store/listStore'
 import { getCategoryEmoji } from '../constants/categories'
 import Modal from '../components/common/Modal'
 import KanbanBoard from '../components/board/KanbanBoard'
+import EditBoardModal from '../components/common/EditBoardModal'
 import toast from 'react-hot-toast'
 
 const BoardPage = () => {
@@ -16,6 +17,7 @@ const BoardPage = () => {
   const [activeTab, setActiveTab] = useState('board')
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -103,8 +105,14 @@ const BoardPage = () => {
           >
             {currentBoard.title}
           </h1>
-          <button className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors">
-            <Pencil size={18} />
+          <button
+            onClick={() => setEditModalOpen(true)}
+            className="transition-colors"
+            style={{ color: 'var(--color-text-muted)' }}
+            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-brand)'}
+            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-muted)'}
+          >
+            <SquarePen  size={20} />
           </button>
 
           {/* 보드 삭제 — 오른쪽 끝 */}
@@ -222,6 +230,14 @@ const BoardPage = () => {
           </div>
         )}
       </div>
+
+      {/* ── 보드 수정 모달 ── */}
+      <EditBoardModal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        board={currentBoard}
+        onSuccess={() => fetchBoardById(id)}
+      />
 
       {/* ── 보드 삭제 확인 모달 ── */}
       <Modal isOpen={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} className="max-w-[400px]">
