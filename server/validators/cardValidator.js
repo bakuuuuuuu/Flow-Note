@@ -5,8 +5,8 @@ const cardSchema = Joi.object({
   list_id: Joi.string().regex(objectIdPattern).required(),
   board_id: Joi.string().regex(objectIdPattern).required(),
   title: Joi.string().min(1).max(100).trim().required(),
-  
-  content: Joi.string().allow('', null),
+
+  content: Joi.string().max(2000).allow('', null),
   due_date: Joi.date().iso().allow(null, ''),
   remind_before: Joi.number().min(0).default(0),
   is_notified: Joi.boolean().default(false),
@@ -30,9 +30,8 @@ const cardSchema = Joi.object({
   owner_id: Joi.string().regex(objectIdPattern)
 });
 
-// 수정용 스키마
 const updateCardSchema = cardSchema.fork(
-  ['list_id', 'board_id', 'title'], 
+  ['list_id', 'board_id', 'title'],
   (schema) => schema.optional()
 );
 

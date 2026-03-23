@@ -68,7 +68,9 @@ exports.getBoardById = async (req, res) => {
 
     const listsWithCards = await Promise.all(
       lists.map(async (list) => {
-        const cards = await Card.find({ list_id: list._id }).sort('pos');
+        const cards = await Card.find({ list_id: list._id })
+          .sort('pos')
+          .populate('owner_id', 'nickname')
         return {
           ...list._doc,
           cards: cards

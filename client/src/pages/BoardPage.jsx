@@ -203,7 +203,7 @@ const BoardPage = () => {
       {/* ── 탭 콘텐츠 ── */}
       <div className="flex-1 min-h-0">
         {activeTab === 'board' && (
-          <KanbanBoard onCardClick={() => {}} />
+          <KanbanBoard boardId={id} onCardClick={() => {}} />
         )}
         {activeTab === 'calendar' && (
           <div

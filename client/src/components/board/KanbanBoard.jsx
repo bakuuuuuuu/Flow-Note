@@ -4,7 +4,7 @@ import useListStore from '../../store/listStore'
 import useSidebarStore from '../../store/sidebarStore'
 import KanbanColumn from './KanbanColumn'
 
-const KanbanBoard = ({ onCardClick }) => {
+const KanbanBoard = ({ boardId, onCardClick }) => {
   const { lists } = useListStore()
   const { isOpen: sidebarOpen } = useSidebarStore()
   const scrollRef = useRef(null)
@@ -119,6 +119,7 @@ const KanbanBoard = ({ onCardClick }) => {
             list={list}
             onCardClick={onCardClick}
             columnWidth={columnWidth}
+            boardId={boardId}
           />
         ))}
       </div>

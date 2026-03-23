@@ -22,62 +22,71 @@ const KanbanCard = ({ card, onClick }) => {
         boxShadow: '0px 2px 8px rgba(0,0,0,0.05)',
       }}
     >
-      {/* ── 상단: 아이콘 + 제목 + 라벨 ── */}
-      <div className="mb-3">
-        <div className="flex items-start gap-2 mb-1">
-          <span className="text-[14px] mt-[2px]">📋</span>
-          <p
-            className="text-[14px] font-semibold leading-snug"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
-            {card.title}
-          </p>
-        </div>
-        {card.labels && card.labels.length > 0 && (
-          <p
-            className="text-[12px] ml-6"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            {card.labels[0].text}
-          </p>
-        )}
-        {/* 라벨 없으면 priority 표시 */}
-        {(!card.labels || card.labels.length === 0) && card.priority && (
-          <p
-            className="text-[12px] ml-6"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            {card.priority}
-          </p>
-        )}
+      {/* ── 제목 줄 ── */}
+      <div className="flex items-center gap-2 mb-1">
+        <span
+          className="text-[14px] flex-shrink-0 flex items-center justify-center"
+          style={{ width: '16px' }}
+        >
+          📋
+        </span>
+        <p
+          className="text-[14px] font-semibold leading-snug"
+          style={{ color: 'var(--color-text-primary)' }}
+        >
+          {card.title}
+        </p>
       </div>
 
-      {/* ── 하단: D-day + 프로필 ── */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1">
-          <Calendar size={13} style={{ color: 'var(--color-text-muted)' }} />
-          {dday ? (
-            <span className="text-[12px]" style={{ color: dday.color }}>
-              {dday.label}
+      {/* ── 라벨 태그 ── */}
+      {card.labels && card.labels.length > 0 ? (
+        <div className="flex flex-wrap gap-1 mb-3" style={{ marginLeft: '24px' }}>
+          {card.labels.map((label, i) => (
+            <span
+              key={i}
+              className="h-[18px] px-2 rounded-full text-[11px] font-medium text-white"
+              style={{ background: label.color }}
+            >
+              {label.text}
             </span>
-          ) : card.due_date ? (
-            <span className="text-[12px]" style={{ color: 'var(--color-text-muted)' }}>
-              {new Date(card.due_date).toLocaleDateString('ko-KR')}
-            </span>
-          ) : (
-            <span className="text-[12px]" style={{ color: 'var(--color-text-muted)' }}>
-              기한 없음
-            </span>
-          )}
+          ))}
         </div>
+      ) : card.priority ? (
+        <div className="mb-3" style={{ marginLeft: '24px' }}>
+          <span className="text-[12px]" style={{ color: 'var(--color-text-muted)' }}>
+            {card.priority}
+          </span>
+        </div>
+      ) : (
+        <div className="mb-3" />
+      )}
 
-        {/* 프로필 */}
+      {/* ── D-day 줄 ── */}
+      <div className="flex items-center gap-2">
+        <span
+          className="flex-shrink-0 flex items-center justify-center"
+          style={{ width: '16px' }}
+        >
+          <Calendar size={13} style={{ color: 'var(--color-text-muted)' }} />
+        </span>
+        {dday ? (
+          <span className="text-[12px]" style={{ color: dday.color }}>
+            {dday.label}
+          </span>
+        ) : card.due_date ? (
+          <span className="text-[12px]" style={{ color: 'var(--color-text-muted)' }}>
+            {new Date(card.due_date).toLocaleDateString('ko-KR')}
+          </span>
+        ) : (
+          <span className="text-[12px]" style={{ color: 'var(--color-text-muted)' }}>
+            기한 없음
+          </span>
+        )}
+
+        {/* 프로필 — 오른쪽 끝 */}
         <div
-          className="w-[28px] h-[28px] rounded-full flex items-center justify-center text-[11px] font-bold"
-          style={{
-            background: 'var(--color-border)',
-            color: 'var(--color-text-muted)',
-          }}
+          className="ml-auto w-[28px] h-[28px] rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 text-white"
+          style={{ background: 'var(--color-brand)' }}
         >
           {card.owner_id?.nickname?.[0] ?? 'U'}
         </div>
