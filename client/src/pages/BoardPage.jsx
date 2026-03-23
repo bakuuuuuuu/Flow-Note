@@ -83,6 +83,9 @@ const BoardPage = () => {
 
   const dday = getDdayText(currentBoard.deadline)
 
+  const formatDate = (date) =>
+    new Date(date).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' })
+
   return (
     <div className="flex flex-col" style={{ height: 'calc(100vh - 72px)' }}>
 
@@ -165,10 +168,15 @@ const BoardPage = () => {
             ))}
           </div>
 
-          {/* 마감일 & D-day */}
-          {currentBoard.deadline && (
+          {/* 시작일 ~ 마감일 & D-day */}
+          {(currentBoard.start_date || currentBoard.deadline) && (
             <span className="text-[14px]" style={{ color: 'var(--color-text-muted)' }}>
-              {new Date(currentBoard.deadline).toLocaleDateString('ko-KR')}
+              {currentBoard.start_date && currentBoard.deadline
+                ? `${formatDate(currentBoard.start_date)} - ${formatDate(currentBoard.deadline)}`
+                : currentBoard.deadline
+                ? formatDate(currentBoard.deadline)
+                : formatDate(currentBoard.start_date)
+              }
             </span>
           )}
           {dday && (

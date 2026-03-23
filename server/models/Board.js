@@ -15,6 +15,9 @@ const boardSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  start_date: {
+    type: Date
+  },
   deadline: {
     type: Date
   },

@@ -8,11 +8,12 @@ const path = require('path');
 // [보드 생성]
 exports.createBoard = async (req, res) => {
   try {
-    const { title, category, deadline, bg_theme, is_starred, lists } = req.body;
+    const { title, category, start_date, deadline, bg_theme, is_starred, lists } = req.body;
 
     const newBoard = new Board({
       title,
       category,
+      start_date,
       deadline,
       is_starred: is_starred || false,
       bg_theme: bg_theme || 'default-theme',
@@ -22,7 +23,6 @@ exports.createBoard = async (req, res) => {
 
     const savedBoard = await newBoard.save();
 
-    // 리스트 생성 (프론트에서 받은 이름으로, pos는 순서대로)
     const listTitles = lists && lists.length > 0
       ? lists
       : ['할 일', '진행 중', '완료']
@@ -91,7 +91,7 @@ exports.getBoardById = async (req, res) => {
 exports.updateBoard = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, category, deadline, bg_theme, is_starred } = req.body;
+    const { title, category, start_date, deadline, bg_theme, is_starred } = req.body;
 
     let board = await Board.findById(id);
     if (!board || board.owner_id.toString() !== req.user._id.toString()) {
@@ -100,12 +100,12 @@ exports.updateBoard = async (req, res) => {
 
     board.title = title || board.title;
     board.category = category || board.category;
-    board.deadline = deadline || board.deadline;
+    board.start_date = start_date !== undefined ? start_date : board.start_date;
+    board.deadline = deadline !== undefined ? deadline : board.deadline;
     board.bg_theme = bg_theme || board.bg_theme;
     if (is_starred !== undefined) board.is_starred = is_starred;
 
     const updatedBoard = await board.save();
-
     res.status(200).json(updatedBoard);
   } catch (error) {
     res.status(500).json({ message: '보드 수정 실패', error: error.message });
