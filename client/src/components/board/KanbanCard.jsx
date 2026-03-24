@@ -1,4 +1,6 @@
 import { Calendar } from 'lucide-react'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 
 const getDdayText = (due_date) => {
   if (!due_date) return null
@@ -13,14 +15,39 @@ const getDdayText = (due_date) => {
 const KanbanCard = ({ card, onClick }) => {
   const dday = getDdayText(card.due_date)
 
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: card._id,
+    data: { type: 'card', card },
+  })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+    cursor: isDragging ? 'grabbing' : 'grab',
+  }
+
   return (
     <div
-      onClick={() => onClick?.(card)}
-      className="rounded-[8px] p-4 cursor-pointer transition-all duration-150 hover:shadow-md hover:-translate-y-[1px]"
+      ref={setNodeRef}
       style={{
+        ...style,
         background: 'var(--color-surface)',
-        boxShadow: '0px 2px 8px rgba(0,0,0,0.05)',
+        boxShadow: isDragging
+          ? '0px 8px 24px rgba(0,0,0,0.15)'
+          : '0px 2px 8px rgba(0,0,0,0.05)',
       }}
+      {...attributes}
+      {...listeners}
+      onClick={() => !isDragging && onClick?.(card)}
+      className="rounded-[8px] p-4 transition-shadow duration-150 hover:shadow-md hover:-translate-y-[1px]"
     >
       {/* ── 제목 줄 ── */}
       <div className="flex items-center gap-2 mb-1">

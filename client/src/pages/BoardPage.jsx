@@ -112,7 +112,7 @@ const BoardPage = () => {
             onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-brand)'}
             onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-muted)'}
           >
-            <SquarePen  size={20} />
+            <SquarePen  size={22} />
           </button>
 
           {/* 보드 삭제 — 오른쪽 끝 */}

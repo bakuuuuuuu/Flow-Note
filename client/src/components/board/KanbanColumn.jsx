@@ -1,9 +1,18 @@
 import { useState } from 'react'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { useDroppable } from '@dnd-kit/core'
 import KanbanCard from './KanbanCard'
 import NewCardModal from './NewCardModal'
 
 const KanbanColumn = ({ list, onCardClick, columnWidth, boardId }) => {
   const [modalOpen, setModalOpen] = useState(false)
+
+  const { setNodeRef } = useDroppable({
+    id: list._id,
+    data: { type: 'column', listId: list._id },
+  })
+
+  const cardIds = (list.cards ?? []).map((c) => c._id)
 
   return (
     <div
@@ -27,38 +36,41 @@ const KanbanColumn = ({ list, onCardClick, columnWidth, boardId }) => {
       </div>
 
       {/* ── 카드 목록 ── */}
-      <div
-        className="rounded-[12px] p-3 flex flex-col gap-3 overflow-y-auto"
-        style={{
-          background: 'var(--color-surface-2)',
-          border: '1px dashed var(--color-border)',
-          flex: 1,
-          minHeight: 0,
-        }}
-      >
-        {list.cards && list.cards.length > 0 ? (
-          list.cards.map((card) => (
-            <KanbanCard
-              key={card._id}
-              card={card}
-              onClick={onCardClick}
-            />
-          ))
-        ) : (
-          <div
-            className="rounded-[8px] p-4 flex items-center justify-center text-[13px]"
-            style={{
-              background: 'var(--color-surface)',
-              boxShadow: '0px 2px 8px rgba(0,0,0,0.05)',
-              color: 'var(--color-text-muted)',
-              minHeight: '116px',
-              flexShrink: 0,
-            }}
-          >
-            등록된 카드가 없어요
-          </div>
-        )}
-      </div>
+      <SortableContext items={cardIds} strategy={verticalListSortingStrategy}>
+        <div
+          ref={setNodeRef}
+          className="rounded-[12px] p-3 flex flex-col gap-3 overflow-y-auto"
+          style={{
+            background: 'var(--color-surface-2)',
+            border: '1px dashed var(--color-border)',
+            flex: 1,
+            minHeight: 0,
+          }}
+        >
+          {list.cards && list.cards.length > 0 ? (
+            list.cards.map((card) => (
+              <KanbanCard
+                key={card._id}
+                card={card}
+                onClick={onCardClick}
+              />
+            ))
+          ) : (
+            <div
+              className="rounded-[8px] p-4 flex items-center justify-center text-[13px]"
+              style={{
+                background: 'var(--color-surface)',
+                boxShadow: '0px 2px 8px rgba(0,0,0,0.05)',
+                color: 'var(--color-text-muted)',
+                minHeight: '116px',
+                flexShrink: 0,
+              }}
+            >
+              등록된 카드가 없어요
+            </div>
+          )}
+        </div>
+      </SortableContext>
 
       {/* ── 카드 추가 버튼 — 하단 고정 ── */}
       <button
