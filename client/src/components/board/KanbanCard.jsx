@@ -1,6 +1,20 @@
-import { Calendar } from 'lucide-react'
+import { CheckSquare, Calendar } from 'lucide-react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+
+const STATUS_CONFIG = {
+  '대기':   { label: '할 일',   color: '#94a3b8' },
+  '진행중': { label: '진행 중', color: '#f59e0b' },
+  '완료':   { label: '완료',    color: '#10b981' },
+  '보류':   { label: '보류',    color: '#ef4444' },
+}
+
+const PRIORITY_CONFIG = {
+  '긴급': { color: '#ef4444' },
+  '높음': { color: '#f97316' },
+  '보통': { color: '#3b82f6' },
+  '낮음': { color: '#94a3b8' },
+}
 
 const getDdayText = (due_date) => {
   if (!due_date) return null
@@ -12,8 +26,15 @@ const getDdayText = (due_date) => {
   return              { label: `D-${diff}`,              color: 'var(--color-text-muted)' }
 }
 
+const formatDate = (date) =>
+  new Date(date).toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' }).replace('. ', '/').replace('.', '')
+
 const KanbanCard = ({ card, onClick }) => {
   const dday = getDdayText(card.due_date)
+  const status = STATUS_CONFIG[card.status]
+  const priority = PRIORITY_CONFIG[card.priority]
+  const visibleLabels = card.labels?.slice(0, 2) ?? []
+  const extraLabels = (card.labels?.length ?? 0) - visibleLabels.length
 
   const {
     attributes,
@@ -47,77 +68,103 @@ const KanbanCard = ({ card, onClick }) => {
       {...attributes}
       {...listeners}
       onClick={() => !isDragging && onClick?.(card)}
-      className="rounded-[8px] p-4 transition-shadow duration-150 hover:shadow-md hover:-translate-y-[1px]"
+      className="rounded-[10px] p-3 transition-all duration-150 hover:shadow-md hover:-translate-y-[1px]"
     >
-      {/* ── 제목 줄 ── */}
-      <div className="flex items-center gap-2 mb-1">
-        <span
-          className="text-[14px] flex-shrink-0 flex items-center justify-center"
-          style={{ width: '16px' }}
-        >
-          📋
-        </span>
+      {/* ── 1행: 제목 ── */}
+      <div className="flex items-start gap-2 mb-2">
+        <CheckSquare
+          size={14}
+          className="flex-shrink-0 mt-[2px]"
+          style={{ color: status?.color ?? 'var(--color-text-muted)' }}
+        />
         <p
-          className="text-[14px] font-semibold leading-snug"
-          style={{ color: 'var(--color-text-primary)' }}
+          className="text-[13px] font-semibold leading-snug flex-1 min-w-0"
+          style={{
+            color: 'var(--color-text-primary)',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}
         >
           {card.title}
         </p>
       </div>
 
-      {/* ── 라벨 태그 ── */}
-      {card.labels && card.labels.length > 0 ? (
-        <div className="flex flex-wrap gap-1 mb-3" style={{ marginLeft: '24px' }}>
-          {card.labels.map((label, i) => (
-            <span
-              key={i}
-              className="h-[18px] px-2 rounded-full text-[11px] font-medium text-white"
-              style={{ background: label.color }}
-            >
-              {label.text}
-            </span>
-          ))}
-        </div>
-      ) : card.priority ? (
-        <div className="mb-3" style={{ marginLeft: '24px' }}>
-          <span className="text-[12px]" style={{ color: 'var(--color-text-muted)' }}>
-            {card.priority}
-          </span>
-        </div>
-      ) : (
-        <div className="mb-3" />
-      )}
-
-      {/* ── D-day 줄 ── */}
-      <div className="flex items-center gap-2">
-        <span
-          className="flex-shrink-0 flex items-center justify-center"
-          style={{ width: '16px' }}
-        >
-          <Calendar size={13} style={{ color: 'var(--color-text-muted)' }} />
-        </span>
-        {dday ? (
-          <span className="text-[12px]" style={{ color: dday.color }}>
-            {dday.label}
-          </span>
-        ) : card.due_date ? (
-          <span className="text-[12px]" style={{ color: 'var(--color-text-muted)' }}>
-            {new Date(card.due_date).toLocaleDateString('ko-KR')}
-          </span>
-        ) : (
-          <span className="text-[12px]" style={{ color: 'var(--color-text-muted)' }}>
-            기한 없음
+      {/* ── 2행: 상태 + 우선순위 + 라벨 ── */}
+      <div className="flex items-center gap-1 mb-2 flex-wrap" style={{ marginLeft: '22px' }}>
+        {status && (
+          <span
+            className="h-[17px] px-[6px] rounded-[4px] text-[10px] font-semibold text-white flex-shrink-0"
+            style={{ background: status.color }}
+          >
+            {status.label}
           </span>
         )}
+        {priority && (
+          <span
+            className="h-[17px] px-[6px] rounded-[4px] text-[10px] font-semibold flex-shrink-0"
+            style={{
+              background: `${priority.color}22`,
+              color: priority.color,
+              border: `1px solid ${priority.color}55`,
+            }}
+          >
+            {card.priority}
+          </span>
+        )}
+        {visibleLabels.map((label, i) => (
+          <span
+            key={i}
+            className="h-[17px] px-[6px] rounded-[4px] text-[10px] font-medium text-white flex-shrink-0"
+            style={{ background: label.color }}
+          >
+            {label.text}
+          </span>
+        ))}
+        {extraLabels > 0 && (
+          <span
+            className="h-[17px] px-[6px] rounded-[4px] text-[10px] font-medium flex-shrink-0"
+            style={{
+              background: 'var(--color-border)',
+              color: 'var(--color-text-muted)',
+            }}
+          >
+            +{extraLabels}
+          </span>
+        )}
+      </div>
 
-        {/* 프로필 — 오른쪽 끝 */}
+      {/* ── 3행: 기간 + 프로필 ── */}
+      <div className="flex items-center justify-between" style={{ marginLeft: '22px' }}>
+        <div className="flex items-center gap-1">
+          <Calendar size={11} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+          {card.start_date && card.due_date ? (
+            <span className="text-[11px]" style={{ color: dday?.color ?? 'var(--color-text-muted)' }}>
+              {formatDate(card.start_date)} → {formatDate(card.due_date)}
+              {dday && <span className="ml-1 font-semibold">({dday.label})</span>}
+            </span>
+          ) : card.due_date ? (
+            <span className="text-[11px]" style={{ color: dday?.color ?? 'var(--color-text-muted)' }}>
+              {formatDate(card.due_date)}
+              {dday && <span className="ml-1 font-semibold">({dday.label})</span>}
+            </span>
+          ) : (
+            <span className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+              기한 없음
+            </span>
+          )}
+        </div>
+
+        {/* 프로필 */}
         <div
-          className="ml-auto w-[28px] h-[28px] rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0 text-white"
+          className="w-[22px] h-[22px] rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 text-white"
           style={{ background: 'var(--color-brand)' }}
         >
           {card.owner_id?.nickname?.[0] ?? 'U'}
         </div>
       </div>
+
     </div>
   )
 }
