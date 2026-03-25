@@ -36,34 +36,34 @@ const MainSidebar = ({ open }) => {
   return (
     <>
       <aside
-        className="fixed top-[72px] left-0 h-[calc(100vh-72px)] z-40 flex flex-col border-r transition-all duration-200 overflow-hidden"
+        className="fixed top-[72px] left-0 h-[calc(100vh-72px)] z-40 flex flex-col transition-all duration-200 overflow-hidden"
         style={{
           width: open ? '260px' : '64px',
           background: 'var(--color-sidebar-bg)',
-          borderColor: 'var(--color-border-subtle)',
+          borderRight: '1px solid var(--color-border-subtle)',  // ← border-subtle로 변경
           backdropFilter: 'blur(15px)',
         }}
       >
 
         {/* ── 새 보드 만들기 버튼 ── */}
-<div className="px-4 pt-6 pb-2 flex-shrink-0">
-  <button
-    onClick={() => setModalOpen(true)}
-    className="w-full h-[48px] flex items-center justify-center rounded-[12px] text-white font-bold text-[15px] transition-colors hover:opacity-90"
-    style={{
-      background: 'var(--color-brand)',
-      boxShadow: '0px 4px 4px rgba(0,0,0,0.05)',
-    }}
-  >
-    {open ? (
-  <span style={{ opacity: open ? 1 : 0, transition: 'opacity 0.15s ease 0.1s', whiteSpace: 'nowrap' }}>
-    새 보드 만들기
-  </span>
-) : (
-  <Plus size={20} />
-)}
-  </button>
-</div>
+        <div className="px-4 pt-6 pb-2 flex-shrink-0">
+          <button
+            onClick={() => setModalOpen(true)}
+            className="w-full h-[48px] flex items-center justify-center rounded-[12px] text-white font-bold text-[15px] transition-colors hover:opacity-90"
+            style={{
+              background: 'var(--color-brand)',
+              boxShadow: '0px 4px 4px rgba(0,0,0,0.05)',
+            }}
+          >
+            {open ? (
+          <span style={{ opacity: open ? 1 : 0, transition: 'opacity 0.15s ease 0.1s', whiteSpace: 'nowrap' }}>
+            새 보드 만들기
+          </span>
+        ) : (
+          <Plus size={20} />
+        )}
+          </button>
+        </div>
 
         {/* ── 상단 메뉴 (홈 / 우선순위 / 즐겨찾기) ── */}
         <nav className="px-4 pt-3 flex flex-col gap-1 flex-shrink-0">

@@ -7,37 +7,39 @@
   --color-brand:                #2d408e;
   --color-brand-hover:          #243370;
 
-  /* ─── 라이트모드 배경 ──────────────────────────────── */
-  --color-bg:                   #f1f3f5;
-  --color-surface:              #ffffff;
-  --color-surface-2:            #f8f9fa;
-  --color-header-bg:            rgba(255, 255, 255, 0.75);
-  --color-sidebar-bg:           rgba(255, 255, 255, 0.65);
+/* ─── 라이트모드 배경 ──────────────────────────────── */
+--color-bg:                   #ffffff;
+--color-surface:              #ffffff;
+--color-surface-2:            #eef0f8;
+--color-header-bg:            rgba(255, 255, 255, 0.85);
+--color-sidebar-bg:           rgba(255, 255, 255, 0.85);
+--color-border:               #e2e6ea;
+--color-border-subtle:        rgba(0, 0, 0, 0.06);
 
   /* ─── 라이트모드 텍스트 ────────────────────────────── */
-  --color-text-primary:         #212529;
-  --color-text-secondary:       #495057;
-  --color-text-muted:           #868e96;
+  --color-text-primary:         #1a1d23;
+  --color-text-secondary:       #4a5568;
+  --color-text-muted:           #8a95a3;
 
   /* ─── 라이트모드 보더 ──────────────────────────────── */
-  --color-border:               #dee2e6;
-  --color-border-subtle:        rgba(0, 0, 0, 0.08);
+  --color-border:               #e2e6ea;
+  --color-border-subtle:        rgba(0, 0, 0, 0.06);
 
   /* ─── 다크모드 배경 ────────────────────────────────── */
-  --color-dark-bg:              #0f0f10;
-  --color-dark-surface:         #1c1c1e;
-  --color-dark-surface-2:       #2c2c2e;
-  --color-dark-header-bg:       rgba(28, 28, 30, 0.8);
-  --color-dark-sidebar-bg:      rgba(0, 0, 0, 0.5);
+  --color-dark-bg:              #111318; 
+  --color-dark-surface:         #1e2128;
+  --color-dark-surface-2:       #282d37;
+  --color-dark-header-bg:       rgba(30, 33, 40, 0.9);
+  --color-dark-sidebar-bg:      rgba(20, 23, 30, 0.9);
 
   /* ─── 다크모드 텍스트 ──────────────────────────────── */
-  --color-dark-text-primary:    #ffffff;
-  --color-dark-text-secondary:  rgba(255, 255, 255, 0.7);
-  --color-dark-text-muted:      rgba(255, 255, 255, 0.4);
+  --color-dark-text-primary:    #f0f2f5;   
+  --color-dark-text-secondary:  rgba(240, 242, 245, 0.65);
+  --color-dark-text-muted:      rgba(240, 242, 245, 0.38);
 
   /* ─── 다크모드 보더 ────────────────────────────────── */
-  --color-dark-border:          #3a3a3c;
-  --color-dark-border-subtle:   rgba(255, 255, 255, 0.15);
+  --color-dark-border:          #343a46;
+  --color-dark-border-subtle:   rgba(255, 255, 255, 0.08);
 
   /* ─── 인증 화면 전용 ───────────────────────────────── */
   --color-auth-input-bg:        rgba(255, 255, 255, 0.1);
@@ -93,6 +95,23 @@ body {
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
   scrollbar-gutter: stable both-edges;
+  background: var(--color-bg);
+}
+
+/* ─── 스크롤바 커스텀 ───────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
 }
 
 /* ─── 브라우저 기본 비밀번호 아이콘 제거 (Edge) ─────────── */
@@ -104,7 +123,6 @@ input[type="password"]::-ms-reveal {
    인증 화면 공통 스타일 (AuthLayout 하위 모든 페이지)
    ========================================================== */
 
-/* 입력 필드 */
 .auth-input {
   height: clamp(44px, 3.6vw, 52px);
   width: 100%;
@@ -132,7 +150,6 @@ input[type="password"]::-ms-reveal {
   outline: none;
 }
 
-/* 메인 버튼 (로그인 / 시작하기 / 전송 / 변경) */
 .auth-btn {
   height: clamp(48px, 3.9vw, 56px);
   width: 100%;
@@ -155,7 +172,6 @@ input[type="password"]::-ms-reveal {
   cursor: not-allowed;
 }
 
-/* 눈 아이콘 버튼 */
 .eye-btn {
   position: absolute;
   right: 12px;
@@ -174,7 +190,6 @@ input[type="password"]::-ms-reveal {
   color: rgba(255, 255, 255, 0.85);
 }
 
-/* 성별 버튼 */
 .gender-btn {
   height: clamp(44px, 3.6vw, 52px);
   flex: 1;
@@ -192,7 +207,6 @@ input[type="password"]::-ms-reveal {
   border-color: var(--color-brand);
 }
 
-/* 소셜 로그인 버튼 */
 .social-btn {
   width: clamp(40px, 3.3vw, 48px);
   height: clamp(40px, 3.3vw, 48px);
@@ -210,7 +224,6 @@ input[type="password"]::-ms-reveal {
   background: rgba(255, 255, 255, 0.25);
 }
 
-/* 회원가입 입력 스크롤 영역 */
 .input-scroll {
   height: clamp(260px, 34vw, 310px);
   overflow-y: auto;
@@ -233,7 +246,7 @@ input[type="password"]::-ms-reveal {
   border: 1px solid var(--color-border) !important;
   border-radius: 12px !important;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
 }
 .react-datepicker__header {
   background: var(--color-surface) !important;
@@ -257,7 +270,17 @@ input[type="password"]::-ms-reveal {
 .react-datepicker__day:hover {
   background: var(--color-border-subtle) !important;
 }
-.react-datepicker__day--selected {
+.react-datepicker__day--selected,
+.react-datepicker__day--in-range {
+  background: var(--color-brand) !important;
+  color: white !important;
+}
+.react-datepicker__day--in-selecting-range {
+  background: rgba(45, 64, 142, 0.15) !important;
+  color: var(--color-brand) !important;
+}
+.react-datepicker__day--range-start,
+.react-datepicker__day--range-end {
   background: var(--color-brand) !important;
   color: white !important;
 }
@@ -286,6 +309,7 @@ input[type="password"]::-ms-reveal {
   font-size: 15px !important;
   outline: none !important;
   cursor: pointer !important;
+  transition: border-color 0.15s !important;
 }
 .react-datepicker__input-container input:focus {
   border-color: var(--color-brand) !important;

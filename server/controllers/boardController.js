@@ -46,15 +46,27 @@ exports.createBoard = async (req, res) => {
 // [내 보드 목록 조회]
 exports.getBoards = async (req, res) => {
   try {
-    const boards = await Board.find({ owner_id: req.user._id }).sort({ createdAt: -1 });
-    res.status(200).json(boards);
+    const boards = await Board.find({ owner_id: req.user._id }).sort({ createdAt: -1 })
+
+    // 각 보드별 카드 수 집계
+    const boardsWithCount = await Promise.all(
+      boards.map(async (board) => {
+        const cardCount = await Card.countDocuments({ board_id: board._id })
+        return {
+          ...board._doc,
+          cardCount,
+        }
+      })
+    )
+
+    res.status(200).json(boardsWithCount)
   } catch (error) {
-    res.status(500).json({ 
-      message: '보드 목록을 가져오는데 실패했습니다.', 
-      error: error.message 
-    });
+    res.status(500).json({
+      message: '보드 목록을 가져오는데 실패했습니다.',
+      error: error.message
+    })
   }
-};
+}
 
 // [특정 보드 상세 조회 (ID 기준)]
 exports.getBoardById = async (req, res) => {

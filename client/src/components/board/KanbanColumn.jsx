@@ -78,6 +78,7 @@ const KanbanColumn = ({ list, onCardClick, columnWidth, boardId, boardTitle }) =
         className="mt-3 flex-shrink-0 w-full h-[48px] rounded-[10px] text-[14px] font-medium transition-colors border border-dashed"
         style={{
           borderColor: 'var(--color-border)',
+          borderWidth: '2px',
           color: 'var(--color-text-muted)',
           background: 'transparent',
         }}
