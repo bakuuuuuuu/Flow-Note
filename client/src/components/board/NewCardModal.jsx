@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Calendar, ChevronDown } from 'lucide-react'
+import { Calendar, ChevronDown, ChevronRight } from 'lucide-react'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import { ko } from 'date-fns/locale'
@@ -38,7 +38,7 @@ const PRIORITY_OPTIONS = [
 const TITLE_MAX = 100
 const CONTENT_MAX = 2000
 
-const NewCardModal = ({ isOpen, onClose, listId, boardId, onSuccess }) => {
+const NewCardModal = ({ isOpen, onClose, listId, boardId, boardTitle, onSuccess }) => {
   const { addCard } = useCardStore()
   const { lists } = useListStore()
 
@@ -85,6 +85,7 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, onSuccess }) => {
         board_id: boardId,
         status: form.status,
         priority: form.priority,
+        start_date: form.start_date ? form.start_date.toISOString() : null,
         due_date: form.due_date ? form.due_date.toISOString() : null,
         labels: form.selectedLabels,
       }, useListStore)
@@ -111,14 +112,24 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, onSuccess }) => {
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} className="max-w-[540px]">
+    <Modal isOpen={isOpen} onClose={handleClose} className="max-w-[600px]">
       <div className="flex flex-col" style={{ maxHeight: '90vh' }}>
 
         {/* ── 헤더 — 상단 고정 ── */}
         <div className="px-8 pt-8 pb-4 flex-shrink-0">
+
+          {/* breadcrumb */}
+          <div className="flex items-center gap-1 mb-3 text-[12px]" style={{ color: 'var(--color-text-muted)' }}>
+            <span>{boardTitle ?? '보드'}</span>
+            <ChevronRight size={12} />
+            <span>{selectedList?.title ?? '리스트 선택'}</span>
+          </div>
+
+          {/* 제목 */}
           <div className="flex items-center justify-between mb-1">
             <span className="text-[13px] font-medium" style={{ color: 'var(--color-text-secondary)' }}>
-              할 일 제목 <span style={{ color: 'var(--color-status-deadline)' }}>*</span>
+              할 일 제목
+              <span style={{ color: 'var(--color-status-deadline)' }}> *</span>
             </span>
             <span
               className="text-[12px]"
@@ -143,45 +154,47 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, onSuccess }) => {
             onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
           />
 
-          {/* 상태 + 우선순위 태그 */}
-          <div className="flex items-center gap-2 mt-3 flex-wrap">
-            {STATUS_OPTIONS.map((s) => (
-              <button
-                key={s.value}
-                type="button"
-                onClick={() => setForm((prev) => ({ ...prev, status: s.value }))}
-                className="h-[26px] px-3 rounded-full text-[12px] font-medium transition-all flex items-center gap-1"
-                style={{
-                  background: form.status === s.value ? s.color : 'var(--color-surface-2)',
-                  color: form.status === s.value ? 'white' : 'var(--color-text-muted)',
-                  border: `1px solid ${form.status === s.value ? s.color : 'var(--color-border)'}`,
-                }}
-              >
-                <span
-                  className="w-[6px] h-[6px] rounded-full flex-shrink-0"
-                  style={{ background: form.status === s.value ? 'white' : s.color }}
-                />
-                {s.label}
-              </button>
-            ))}
-            <div className="w-[1px] h-[16px] mx-1" style={{ background: 'var(--color-border)' }} />
-            {PRIORITY_OPTIONS.map((p) => (
-              <button
-                key={p.value}
-                type="button"
-                onClick={() => setForm((prev) => ({ ...prev, priority: p.value }))}
-                className="h-[26px] px-3 rounded-full text-[12px] font-medium transition-all"
-                style={{
-                  background: form.priority === p.value ? p.color : 'var(--color-surface-2)',
-                  color: form.priority === p.value ? 'white' : 'var(--color-text-muted)',
-                  border: `1px solid ${form.priority === p.value ? p.color : 'var(--color-border)'}`,
-                }}
-              >
-                {p.value}
-              </button>
-            ))}
+          {/* 상태 + 우선순위 */}
+          <div className="mt-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              {STATUS_OPTIONS.map((s) => (
+                <button
+                  key={s.value}
+                  type="button"
+                  onClick={() => setForm((prev) => ({ ...prev, status: s.value }))}
+                  className="h-[26px] px-3 rounded-full text-[12px] font-medium transition-all flex items-center gap-1"
+                  style={{
+                    background: form.status === s.value ? s.color : 'var(--color-surface-2)',
+                    color: form.status === s.value ? 'white' : 'var(--color-text-muted)',
+                    border: `1px solid ${form.status === s.value ? s.color : 'var(--color-border)'}`,
+                  }}
+                >
+                  <span
+                    className="w-[6px] h-[6px] rounded-full flex-shrink-0"
+                    style={{ background: form.status === s.value ? 'white' : s.color }}
+                  />
+                  {s.label}
+                </button>
+              ))}
+              <div className="w-[1px] h-[16px] mx-1" style={{ background: 'var(--color-border)' }} />
+              {PRIORITY_OPTIONS.map((p) => (
+                <button
+                  key={p.value}
+                  type="button"
+                  onClick={() => setForm((prev) => ({ ...prev, priority: p.value }))}
+                  className="h-[26px] px-3 rounded-full text-[12px] font-medium transition-all"
+                  style={{
+                    background: form.priority === p.value ? p.color : 'var(--color-surface-2)',
+                    color: form.priority === p.value ? 'white' : 'var(--color-text-muted)',
+                    border: `1px solid ${form.priority === p.value ? p.color : 'var(--color-border)'}`,
+                  }}
+                >
+                  {p.value}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+          </div>
 
         {/* ── 스크롤 영역 ── */}
         <div className="flex-1 overflow-y-auto px-8 pb-2">
@@ -276,7 +289,7 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, onSuccess }) => {
             </div>
           </div>
 
-          {/* 기간 (시작일 ~ 마감일) */}
+          {/* 기간 */}
           <div className="mb-5">
             <label className="block text-[14px] font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
               <span className="flex items-center gap-1">

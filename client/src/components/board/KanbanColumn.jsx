@@ -4,7 +4,7 @@ import { useDroppable } from '@dnd-kit/core'
 import KanbanCard from './KanbanCard'
 import NewCardModal from './NewCardModal'
 
-const KanbanColumn = ({ list, onCardClick, columnWidth, boardId }) => {
+const KanbanColumn = ({ list, onCardClick, columnWidth, boardId, boardTitle }) => {
   const [modalOpen, setModalOpen] = useState(false)
 
   const { setNodeRef } = useDroppable({
@@ -99,6 +99,7 @@ const KanbanColumn = ({ list, onCardClick, columnWidth, boardId }) => {
         onClose={() => setModalOpen(false)}
         listId={list._id}
         boardId={boardId}
+        boardTitle={boardTitle}
         onSuccess={() => setModalOpen(false)}
       />
     </div>

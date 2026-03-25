@@ -274,6 +274,7 @@ const KanbanBoard = ({ boardId, onCardClick }) => {
                 }}
                 columnWidth={columnWidth}
                 boardId={boardId}
+                boardTitle={currentBoard?.title}
               />
             ))}
           </div>
