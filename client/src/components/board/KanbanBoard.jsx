@@ -12,20 +12,24 @@ import { arrayMove } from '@dnd-kit/sortable'
 import useListStore from '../../store/listStore'
 import useCardStore from '../../store/cardStore'
 import useSidebarStore from '../../store/sidebarStore'
+import useBoardStore from '../../store/boardStore'
 import KanbanColumn from './KanbanColumn'
 import KanbanCard from './KanbanCard'
+import CardDetailModal from './CardDetailModal'
 
 const KanbanBoard = ({ boardId, onCardClick }) => {
   const { lists, setLists } = useListStore()
   const { transferCard } = useCardStore()
   const { isOpen: sidebarOpen } = useSidebarStore()
+  const { currentBoard } = useBoardStore()
   const scrollRef = useRef(null)
   const [scrollPos, setScrollPos] = useState(0)
   const [maxScroll, setMaxScroll] = useState(0)
   const [activeCard, setActiveCard] = useState(null)
+  const [selectedCard, setSelectedCard] = useState(null)
+  const [detailOpen, setDetailOpen] = useState(false)
 
   const snapshotRef = useRef(null)
-  // lists 항상 최신값 유지
   const listsRef = useRef(lists)
   useEffect(() => {
     listsRef.current = lists
@@ -94,7 +98,6 @@ const KanbanBoard = ({ boardId, onCardClick }) => {
     const snapshot = snapshotRef.current
     snapshotRef.current = null
 
-    // 항상 최신 lists 사용
     const currentLists = listsRef.current
 
     if (!over || !snapshot) return
@@ -111,7 +114,6 @@ const KanbanBoard = ({ boardId, onCardClick }) => {
     if (!destList) return
 
     if (sourceList._id === destListId) {
-      // ── 같은 컬럼 내 순서 변경 ──
       const currentList = currentLists.find((l) => l._id === sourceList._id)
       const oldIndex = currentList.cards.findIndex((c) => c._id === active.id)
       const newIndex = overIsColumn
@@ -142,7 +144,6 @@ const KanbanBoard = ({ boardId, onCardClick }) => {
       }
 
     } else {
-      // ── 다른 컬럼으로 이동 ──
       const movingCard = sourceList.cards.find((c) => c._id === active.id)
       if (!movingCard) return
 
@@ -206,83 +207,99 @@ const KanbanBoard = ({ boardId, onCardClick }) => {
   )
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={pointerWithin}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <div
-        className="relative"
-        style={{ height: 'calc(100vh - 260px)', width: '100%' }}
+    <>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={pointerWithin}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
       >
-        {/* ── 좌측 화살표 ── */}
-        {canScrollLeft && (
-          <button
-            onClick={() => handleScroll(-1)}
-            className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-[40px] h-[40px] flex items-center justify-center rounded-full shadow-lg transition-all"
-            style={{
-              background: 'var(--color-surface)',
-              border: '1px solid var(--color-border)',
-              color: 'var(--color-text-secondary)',
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-surface-2)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'var(--color-surface)'}
-          >
-            <ChevronLeft size={22} />
-          </button>
-        )}
-
-        {/* ── 우측 화살표 ── */}
-        {canScrollRight && (
-          <button
-            onClick={() => handleScroll(1)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-[40px] h-[40px] flex items-center justify-center rounded-full shadow-lg transition-all"
-            style={{
-              background: 'var(--color-surface)',
-              border: '1px solid var(--color-border)',
-              color: 'var(--color-text-secondary)',
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-surface-2)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'var(--color-surface)'}
-          >
-            <ChevronRight size={22} />
-          </button>
-        )}
-
-        {/* ── 칸반 컬럼 스크롤 영역 ── */}
         <div
-          ref={scrollRef}
-          className="flex gap-6 overflow-x-auto px-10 py-6"
-          style={{
-            height: '100%',
-            width: '100%',
-            alignItems: 'stretch',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-          }}
+          className="relative"
+          style={{ height: 'calc(100vh - 260px)', width: '100%' }}
         >
-          {lists.map((list) => (
-            <KanbanColumn
-              key={list._id}
-              list={list}
-              onCardClick={onCardClick}
-              columnWidth={columnWidth}
-              boardId={boardId}
-            />
-          ))}
-        </div>
-
-        {/* ── 드래그 중인 카드 오버레이 ── */}
-        <DragOverlay>
-          {activeCard && (
-            <div style={{ transform: 'rotate(2deg)', opacity: 0.95 }}>
-              <KanbanCard card={activeCard} onClick={() => {}} />
-            </div>
+          {/* ── 좌측 화살표 ── */}
+          {canScrollLeft && (
+            <button
+              onClick={() => handleScroll(-1)}
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-[40px] h-[40px] flex items-center justify-center rounded-full shadow-lg transition-all"
+              style={{
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                color: 'var(--color-text-secondary)',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-surface-2)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'var(--color-surface)'}
+            >
+              <ChevronLeft size={22} />
+            </button>
           )}
-        </DragOverlay>
-      </div>
-    </DndContext>
+
+          {/* ── 우측 화살표 ── */}
+          {canScrollRight && (
+            <button
+              onClick={() => handleScroll(1)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-[40px] h-[40px] flex items-center justify-center rounded-full shadow-lg transition-all"
+              style={{
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                color: 'var(--color-text-secondary)',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-surface-2)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'var(--color-surface)'}
+            >
+              <ChevronRight size={22} />
+            </button>
+          )}
+
+          {/* ── 칸반 컬럼 스크롤 영역 ── */}
+          <div
+            ref={scrollRef}
+            className="flex gap-6 overflow-x-auto px-10 py-6"
+            style={{
+              height: '100%',
+              width: '100%',
+              alignItems: 'stretch',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+            }}
+          >
+            {lists.map((list) => (
+              <KanbanColumn
+                key={list._id}
+                list={list}
+                onCardClick={(card) => {
+                  setSelectedCard(card)
+                  setDetailOpen(true)
+                }}
+                columnWidth={columnWidth}
+                boardId={boardId}
+              />
+            ))}
+          </div>
+
+          {/* ── 드래그 중인 카드 오버레이 ── */}
+          <DragOverlay>
+            {activeCard && (
+              <div style={{ transform: 'rotate(2deg)', opacity: 0.95 }}>
+                <KanbanCard card={activeCard} onClick={() => {}} />
+              </div>
+            )}
+          </DragOverlay>
+        </div>
+      </DndContext>
+
+      {/* ── 카드 상세 모달 ── */}
+      <CardDetailModal
+        isOpen={detailOpen}
+        onClose={() => {
+          setDetailOpen(false)
+          setSelectedCard(null)
+        }}
+        card={selectedCard}
+        boardTitle={currentBoard?.title}
+      />
+    </>
   )
 }
 

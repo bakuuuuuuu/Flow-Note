@@ -7,6 +7,7 @@ const cardSchema = Joi.object({
   title: Joi.string().min(1).max(100).trim().required(),
 
   content: Joi.string().max(2000).allow('', null),
+  start_date: Joi.date().iso().allow(null, ''),
   due_date: Joi.date().iso().allow(null, ''),
   remind_before: Joi.number().min(0).default(0),
   is_notified: Joi.boolean().default(false),
@@ -16,6 +17,7 @@ const cardSchema = Joi.object({
   is_archived: Joi.boolean(),
   labels: Joi.array().items(
     Joi.object({
+      _id: Joi.string().regex(objectIdPattern).allow(null),
       color: Joi.string().allow(''),
       text: Joi.string().allow('')
     })

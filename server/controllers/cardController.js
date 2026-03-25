@@ -91,7 +91,7 @@ exports.updateCard = async (req, res) => {
     const updatedCard = await Card.findByIdAndUpdate(
       cardId,
       { $set: updateData },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     // 어떤 필드가 바뀌었는지 비교하여 활동 로그(Activity) 생성
@@ -191,7 +191,7 @@ exports.moveCard = async (req, res) => {
     }
 
     const updatedCard = await Card.findByIdAndUpdate(
-      cardId, { list_id, pos }, { new: true }
+      cardId, { list_id, pos }, { returnDocument: 'after' }
     ).populate('list_id', 'title');
 
     // 리스트(list_id)가 변경된 경우에만 '활동 로그' 생성
@@ -235,7 +235,7 @@ exports.uploadCardAttachments = async (req, res) => {
     const card = await Card.findByIdAndUpdate(
       cardId,
       { $push: { attachments: { $each: newAttachments } } },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (!card) {

@@ -21,6 +21,20 @@ const LABEL_OPTIONS = [
   { color: '#84cc16', text: 'Infra' },
 ]
 
+const STATUS_OPTIONS = [
+  { value: '대기',   label: '할 일',   color: '#94a3b8' },
+  { value: '진행중', label: '진행 중', color: '#f59e0b' },
+  { value: '완료',   label: '완료',    color: '#10b981' },
+  { value: '보류',   label: '보류',    color: '#ef4444' },
+]
+
+const PRIORITY_OPTIONS = [
+  { value: '긴급', color: '#ef4444' },
+  { value: '높음', color: '#f97316' },
+  { value: '보통', color: '#3b82f6' },
+  { value: '낮음', color: '#94a3b8' },
+]
+
 const TITLE_MAX = 100
 const CONTENT_MAX = 2000
 
@@ -32,6 +46,8 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, onSuccess }) => {
     title: '',
     content: '',
     list_id: listId,
+    status: '대기',
+    priority: '보통',
     start_date: null,
     due_date: null,
     selectedLabels: [],
@@ -55,38 +71,40 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, onSuccess }) => {
   }
 
   const handleSubmit = async () => {
-  setError('')
-  if (!form.title.trim()) {
-    setError('카드 제목을 입력해주세요.')
-    return
+    setError('')
+    if (!form.title.trim()) {
+      setError('카드 제목을 입력해주세요.')
+      return
+    }
+    setLoading(true)
+    try {
+      const newCard = await addCard({
+        title: form.title.trim(),
+        content: form.content.trim(),
+        list_id: form.list_id,
+        board_id: boardId,
+        status: form.status,
+        priority: form.priority,
+        due_date: form.due_date ? form.due_date.toISOString() : null,
+        labels: form.selectedLabels,
+      }, useListStore)
+      toast.success('카드가 추가됐어요 ✅')
+      handleClose()
+      if (onSuccess) onSuccess(newCard)
+    } catch {
+      toast.error('카드 생성에 실패했어요.')
+      setError('카드 생성에 실패했어요. 다시 시도해주세요.')
+    } finally {
+      setLoading(false)
+    }
   }
-  if (form.start_date && form.due_date && form.start_date > form.due_date) {
-    setError('마감일은 시작일보다 늦어야 해요.')
-    return
-  }
-  setLoading(true)
-  try {
-    const newCard = await addCard({
-      title: form.title.trim(),
-      content: form.content.trim(),
-      list_id: form.list_id,
-      board_id: boardId,
-      due_date: form.due_date ? form.due_date.toISOString() : null,
-      labels: form.selectedLabels,
-    }, useListStore)
-    toast.success('카드가 추가됐어요 ✅')
-    handleClose()
-    if (onSuccess) onSuccess(newCard)
-  } catch {
-    toast.error('카드 생성에 실패했어요.')
-    setError('카드 생성에 실패했어요. 다시 시도해주세요.')
-  } finally {
-    setLoading(false)
-  }
-}
 
   const handleClose = () => {
-    setForm({ title: '', content: '', list_id: listId, start_date: null, due_date: null, selectedLabels: [] })
+    setForm({
+      title: '', content: '', list_id: listId,
+      status: '대기', priority: '보통',
+      start_date: null, due_date: null, selectedLabels: [],
+    })
     setError('')
     setListOpen(false)
     onClose()
@@ -96,50 +114,79 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, onSuccess }) => {
     <Modal isOpen={isOpen} onClose={handleClose} className="max-w-[540px]">
       <div className="flex flex-col" style={{ maxHeight: '90vh' }}>
 
-        {/* ── 타이틀 — 상단 고정 ── */}
+        {/* ── 헤더 — 상단 고정 ── */}
         <div className="px-8 pt-8 pb-4 flex-shrink-0">
-          <h2
-            className="text-[28px] font-bold"
-            style={{ color: 'var(--color-text-primary)', letterSpacing: '-0.6px' }}
-          >
-            새 카드 추가
-          </h2>
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[13px] font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+              할 일 제목 <span style={{ color: 'var(--color-status-deadline)' }}>*</span>
+            </span>
+            <span
+              className="text-[12px]"
+              style={{ color: form.title.length >= 90 ? 'var(--color-status-deadline)' : 'var(--color-text-muted)' }}
+            >
+              {form.title.length}/{TITLE_MAX}
+            </span>
+          </div>
+          <input
+            type="text"
+            placeholder="카드 제목을 입력하세요"
+            value={form.title}
+            onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
+            maxLength={TITLE_MAX}
+            className="w-full h-[48px] px-4 rounded-[10px] text-[16px] font-semibold outline-none transition-colors"
+            style={{
+              background: 'var(--color-surface-2)',
+              border: '1px solid var(--color-border)',
+              color: 'var(--color-text-primary)',
+            }}
+            onFocus={(e) => e.target.style.borderColor = 'var(--color-brand)'}
+            onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
+          />
+
+          {/* 상태 + 우선순위 태그 */}
+          <div className="flex items-center gap-2 mt-3 flex-wrap">
+            {STATUS_OPTIONS.map((s) => (
+              <button
+                key={s.value}
+                type="button"
+                onClick={() => setForm((prev) => ({ ...prev, status: s.value }))}
+                className="h-[26px] px-3 rounded-full text-[12px] font-medium transition-all flex items-center gap-1"
+                style={{
+                  background: form.status === s.value ? s.color : 'var(--color-surface-2)',
+                  color: form.status === s.value ? 'white' : 'var(--color-text-muted)',
+                  border: `1px solid ${form.status === s.value ? s.color : 'var(--color-border)'}`,
+                }}
+              >
+                <span
+                  className="w-[6px] h-[6px] rounded-full flex-shrink-0"
+                  style={{ background: form.status === s.value ? 'white' : s.color }}
+                />
+                {s.label}
+              </button>
+            ))}
+            <div className="w-[1px] h-[16px] mx-1" style={{ background: 'var(--color-border)' }} />
+            {PRIORITY_OPTIONS.map((p) => (
+              <button
+                key={p.value}
+                type="button"
+                onClick={() => setForm((prev) => ({ ...prev, priority: p.value }))}
+                className="h-[26px] px-3 rounded-full text-[12px] font-medium transition-all"
+                style={{
+                  background: form.priority === p.value ? p.color : 'var(--color-surface-2)',
+                  color: form.priority === p.value ? 'white' : 'var(--color-text-muted)',
+                  border: `1px solid ${form.priority === p.value ? p.color : 'var(--color-border)'}`,
+                }}
+              >
+                {p.value}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* ── 스크롤 영역 ── */}
         <div className="flex-1 overflow-y-auto px-8 pb-2">
 
-          {/* ── 카드 제목 ── */}
-          <div className="mb-5">
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-[14px] font-medium" style={{ color: 'var(--color-text-secondary)' }}>
-                할 일 제목 <span style={{ color: 'var(--color-status-deadline)' }}>*</span>
-              </label>
-              <span
-                className="text-[12px]"
-                style={{ color: form.title.length >= 90 ? 'var(--color-status-deadline)' : 'var(--color-text-muted)' }}
-              >
-                {form.title.length}/{TITLE_MAX}
-              </span>
-            </div>
-            <input
-              type="text"
-              placeholder="제목을 입력하세요"
-              value={form.title}
-              onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
-              maxLength={TITLE_MAX}
-              className="w-full h-[52px] px-4 rounded-[10px] text-[15px] outline-none transition-colors"
-              style={{
-                background: 'var(--color-surface-2)',
-                border: '1px solid var(--color-border)',
-                color: 'var(--color-text-primary)',
-              }}
-              onFocus={(e) => e.target.style.borderColor = 'var(--color-brand)'}
-              onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
-            />
-          </div>
-
-          {/* ── 설명 ── */}
+          {/* 설명 */}
           <div className="mb-5">
             <div className="flex items-center justify-between mb-2">
               <label className="text-[14px] font-medium" style={{ color: 'var(--color-text-secondary)' }}>
@@ -157,7 +204,7 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, onSuccess }) => {
               value={form.content}
               onChange={(e) => setForm((prev) => ({ ...prev, content: e.target.value }))}
               maxLength={CONTENT_MAX}
-              rows={6}
+              rows={5}
               className="w-full px-4 py-3 rounded-[10px] text-[14px] outline-none transition-colors resize-none"
               style={{
                 background: 'var(--color-surface-2)',
@@ -169,7 +216,7 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, onSuccess }) => {
             />
           </div>
 
-          {/* ── 리스트 선택 ── */}
+          {/* 리스트 선택 */}
           <div className="mb-5">
             <label className="block text-[14px] font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
               리스트
@@ -178,7 +225,7 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, onSuccess }) => {
               <button
                 type="button"
                 onClick={() => setListOpen((v) => !v)}
-                className="w-full h-[52px] px-4 rounded-[10px] text-[14px] flex items-center justify-between transition-colors cursor-pointer"
+                className="w-full h-[48px] px-4 rounded-[10px] text-[14px] flex items-center justify-between transition-colors cursor-pointer"
                 style={{
                   background: 'var(--color-surface-2)',
                   border: `1px solid ${listOpen ? 'var(--color-brand)' : 'var(--color-border)'}`,
@@ -197,7 +244,7 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, onSuccess }) => {
               </button>
               {listOpen && (
                 <div
-                  className="absolute top-[54px] left-0 right-0 rounded-[10px] overflow-y-auto z-10"
+                  className="absolute top-[50px] left-0 right-0 rounded-[10px] overflow-y-auto z-10"
                   style={{
                     background: 'var(--color-surface)',
                     border: '1px solid var(--color-border)',
@@ -229,54 +276,31 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, onSuccess }) => {
             </div>
           </div>
 
-          {/* ── 시작일 + 마감일 ── */}
-          <div className="flex gap-4 mb-5">
-            <div className="flex-1">
-              <label className="block text-[14px] font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-                <span className="flex items-center gap-1">
-                  <Calendar size={14} />
-                  시작일
-                </span>
-              </label>
-              <DatePicker
-                selected={form.start_date}
-                onChange={(date) => setForm((prev) => ({ ...prev, start_date: date }))}
-                selectsStart
-                startDate={form.start_date}
-                endDate={form.due_date}
-                locale={ko}
-                dateFormat="yyyy.MM.dd"
-                placeholderText="시작일 선택"
-                wrapperClassName="w-full"
-                onFocus={(e) => e.target.style.borderColor = 'var(--color-brand)'}
-                onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
-              />
-            </div>
-            <div className="flex-1">
-              <label className="block text-[14px] font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-                <span className="flex items-center gap-1">
-                  <Calendar size={14} />
-                  마감일
-                </span>
-              </label>
-              <DatePicker
-                selected={form.due_date}
-                onChange={(date) => setForm((prev) => ({ ...prev, due_date: date }))}
-                selectsEnd
-                startDate={form.start_date}
-                endDate={form.due_date}
-                minDate={form.start_date}
-                locale={ko}
-                dateFormat="yyyy.MM.dd"
-                placeholderText="마감일 선택"
-                wrapperClassName="w-full"
-                onFocus={(e) => e.target.style.borderColor = 'var(--color-brand)'}
-                onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
-              />
-            </div>
+          {/* 기간 (시작일 ~ 마감일) */}
+          <div className="mb-5">
+            <label className="block text-[14px] font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+              <span className="flex items-center gap-1">
+                <Calendar size={14} />
+                기간
+              </span>
+            </label>
+            <DatePicker
+              selectsRange
+              startDate={form.start_date}
+              endDate={form.due_date}
+              onChange={([start, end]) =>
+                setForm((prev) => ({ ...prev, start_date: start, due_date: end }))
+              }
+              locale={ko}
+              dateFormat="yyyy.MM.dd"
+              placeholderText="시작일 - 마감일 선택"
+              wrapperClassName="w-full"
+              onFocus={(e) => e.target.style.borderColor = 'var(--color-brand)'}
+              onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
+            />
           </div>
 
-          {/* ── 라벨 태그 ── */}
+          {/* 라벨 */}
           <div className="mb-4">
             <label className="block text-[14px] font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
               라벨
@@ -289,7 +313,7 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, onSuccess }) => {
                     key={label.color}
                     type="button"
                     onClick={() => handleToggleLabel(label)}
-                    className="h-[30px] px-3 rounded-full text-[12px] font-medium transition-all"
+                    className="h-[28px] px-3 rounded-full text-[12px] font-medium transition-all"
                     style={{
                       background: selected ? label.color : 'var(--color-surface-2)',
                       color: selected ? 'white' : 'var(--color-text-secondary)',
@@ -303,13 +327,12 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, onSuccess }) => {
             </div>
           </div>
 
-          {/* 에러 */}
           {error && (
             <p className="text-red-400 text-sm mt-2">{error}</p>
           )}
         </div>
 
-        {/* ── 버튼 — 하단 고정 ── */}
+        {/* ── 하단 버튼 — 고정 ── */}
         <div
           className="px-8 py-5 flex justify-end gap-3 flex-shrink-0"
           style={{ borderTop: '1px solid var(--color-border)' }}
@@ -317,7 +340,7 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, onSuccess }) => {
           <button
             type="button"
             onClick={handleClose}
-            className="h-[48px] w-[120px] rounded-[10px] text-[15px] font-medium transition-all cursor-pointer"
+            className="h-[44px] w-[100px] rounded-[10px] text-[14px] font-medium transition-all cursor-pointer"
             style={{
               background: 'var(--color-surface-2)',
               border: '1px solid var(--color-border)',
@@ -338,7 +361,7 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, onSuccess }) => {
             type="button"
             onClick={handleSubmit}
             disabled={loading}
-            className="h-[48px] w-[120px] rounded-[10px] text-[15px] font-semibold text-white transition-all cursor-pointer flex items-center justify-center gap-2"
+            className="h-[44px] w-[100px] rounded-[10px] text-[14px] font-semibold text-white transition-all cursor-pointer"
             style={{
               background: 'var(--color-brand)',
               opacity: loading ? 0.6 : 1,

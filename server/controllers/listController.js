@@ -42,7 +42,7 @@ exports.updateList = async (req, res) => {
     const updatedList = await List.findByIdAndUpdate(
       id, 
       { $set: req.body }, 
-      { new: true }
+      { returnDocument: 'after' }
     );
     
     res.status(200).json(updatedList);
