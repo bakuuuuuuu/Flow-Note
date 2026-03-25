@@ -11,6 +11,9 @@ router.post('/', protect, validate(listSchema), listController.createList);
 // [PATCH] 리스트 수정
 router.patch('/:id', protect, validate(updateListSchema), listController.updateList);
 
+// [PATCH] 리스트 순서 변경
+router.patch('/:id/move', protect, listController.moveList);
+
 // [DELETE] 리스트 삭제
 router.delete('/:id', protect, listController.deleteList);
 

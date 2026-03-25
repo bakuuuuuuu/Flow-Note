@@ -8,3 +8,6 @@ export const updateList = (id, data) => api.patch(`/lists/${id}`, data)
 
 // [리스트 삭제]
 export const deleteList = (id) => api.delete(`/lists/${id}`)
+
+// [리스트 순서 변경]
+export const moveList = (id, data) => api.patch(`/lists/${id}/move`, data)
