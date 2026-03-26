@@ -34,9 +34,16 @@ const MainHeader = ({ onToggleSidebar }) => {
 
   const handleToggleTheme = () => {
     toggleTheme()
-    toast(isDark ? '☀️ 라이트 모드' : '🌙 다크 모드', {
+    const nextDark = !isDark
+    toast(nextDark ? '🌙 다크 모드' : '☀️ 라이트 모드', {
       duration: 1200,
-      style: { fontSize: '13px', padding: '8px 14px' },
+      style: {
+        fontSize: '13px',
+        padding: '8px 14px',
+        background: nextDark ? '#1c1f26' : '#ffffff',
+        color: nextDark ? '#e8eaf0' : '#1a1d23',
+        border: `1px solid ${nextDark ? '#2e323d' : '#e2e6ea'}`,
+      },
     })
   }
 
