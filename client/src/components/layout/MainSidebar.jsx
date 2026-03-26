@@ -1,7 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Home, Star, AlertCircle, Settings, BookOpen, Plus, ChevronRight } from 'lucide-react'
-import { useEffect } from 'react'
 import useBoardStore from '../../store/boardStore'
 import NewBoardModal from '../common/NewBoardModal'
 import { getCategoryEmoji } from '../../constants/categories'
@@ -30,7 +29,6 @@ const MainSidebar = ({ open }) => {
   ].slice(0, SIDEBAR_BOARD_LIMIT)
 
   const hasMore = boards.length > SIDEBAR_BOARD_LIMIT
-
   const isActive = (path) => location.pathname === path
 
   return (
@@ -40,11 +38,10 @@ const MainSidebar = ({ open }) => {
         style={{
           width: open ? '260px' : '64px',
           background: 'var(--color-sidebar-bg)',
-          borderRight: '1px solid var(--color-border-subtle)',  // ← border-subtle로 변경
+          borderRight: '1px solid var(--color-border-subtle)',
           backdropFilter: 'blur(15px)',
         }}
       >
-
         {/* ── 새 보드 만들기 버튼 ── */}
         <div className="px-4 pt-6 pb-2 flex-shrink-0">
           <button
@@ -56,12 +53,12 @@ const MainSidebar = ({ open }) => {
             }}
           >
             {open ? (
-          <span style={{ opacity: open ? 1 : 0, transition: 'opacity 0.15s ease 0.1s', whiteSpace: 'nowrap' }}>
-            새 보드 만들기
-          </span>
-        ) : (
-          <Plus size={20} />
-        )}
+              <span style={{ opacity: 1, transition: 'opacity 0.15s ease 0.1s', whiteSpace: 'nowrap' }}>
+                새 보드 만들기
+              </span>
+            ) : (
+              <Plus size={20} />
+            )}
           </button>
         </div>
 
@@ -70,7 +67,7 @@ const MainSidebar = ({ open }) => {
           {menus.map(({ icon: Icon, label, path }) => (
             <button
               key={path}
-              onClick={() => navigate(path)}
+              onClick={() => navigate(path, { replace: true })}  // ← replace: true 추가
               className="w-full h-[40px] flex items-center rounded-[8px] text-[14px] font-medium transition-colors"
               style={{
                 color: isActive(path) ? 'var(--color-brand)' : 'var(--color-text-secondary)',
@@ -102,46 +99,46 @@ const MainSidebar = ({ open }) => {
         )}
 
         {/* ── 보드 목록 + 더보기 버튼 (펼쳤을 때만) ── */}
-{open && (
-  <div className="flex-1 px-4 flex flex-col pb-2 min-h-0">
-    <div className="flex-1 flex flex-col overflow-y-auto min-h-0">
-      {visibleBoards.map((board) => (
-        <button
-          key={board._id}
-          onClick={() => {
-            localStorage.setItem('lastBoardId', board._id)
-            navigate(`/board/${board._id}`)
-          }}
-          className="flex items-center gap-3 px-3 rounded-[8px] text-[14px] font-medium transition-colors flex-shrink-0"
-          style={{
-            height: '44px',
-            color: isActive(`/board/${board._id}`) ? 'var(--color-brand)' : 'var(--color-text-secondary)',
-            background: isActive(`/board/${board._id}`) ? 'rgba(45,64,142,0.08)' : 'transparent',
-          }}
-          onMouseEnter={(e) => { if (!isActive(`/board/${board._id}`)) e.currentTarget.style.background = 'var(--color-border-subtle)' }}
-          onMouseLeave={(e) => { if (!isActive(`/board/${board._id}`)) e.currentTarget.style.background = 'transparent' }}
-        >
-          <span style={{ fontSize: '16px', flexShrink: 0 }}>{getCategoryEmoji(board.category)}</span>
-          <span className="truncate flex-1 text-left">{board.title}</span>
-          {board.is_starred && (
-            <Star size={13} fill="currentColor" style={{ color: '#f59e0b', flexShrink: 0 }} />
-          )}
-        </button>
-      ))}
-    </div>
+        {open && (
+          <div className="flex-1 px-4 flex flex-col pb-2 min-h-0">
+            <div className="flex-1 flex flex-col overflow-y-auto min-h-0">
+              {visibleBoards.map((board) => (
+                <button
+                  key={board._id}
+                  onClick={() => {
+                    localStorage.setItem('lastBoardId', board._id)
+                    navigate(`/board/${board._id}`)
+                  }}
+                  className="flex items-center gap-3 px-3 rounded-[8px] text-[14px] font-medium transition-colors flex-shrink-0"
+                  style={{
+                    height: '44px',
+                    color: isActive(`/board/${board._id}`) ? 'var(--color-brand)' : 'var(--color-text-secondary)',
+                    background: isActive(`/board/${board._id}`) ? 'rgba(45,64,142,0.08)' : 'transparent',
+                  }}
+                  onMouseEnter={(e) => { if (!isActive(`/board/${board._id}`)) e.currentTarget.style.background = 'var(--color-border-subtle)' }}
+                  onMouseLeave={(e) => { if (!isActive(`/board/${board._id}`)) e.currentTarget.style.background = 'transparent' }}
+                >
+                  <span style={{ fontSize: '16px', flexShrink: 0 }}>{getCategoryEmoji(board.category)}</span>
+                  <span className="truncate flex-1 text-left">{board.title}</span>
+                  {board.is_starred && (
+                    <Star size={13} fill="currentColor" style={{ color: '#f59e0b', flexShrink: 0 }} />
+                  )}
+                </button>
+              ))}
+            </div>
 
-    {hasMore && (
-      <button
-        onClick={() => navigate('/home')}
-        className="h-[40px] flex items-center gap-3 px-3 rounded-[8px] text-[14px] font-medium transition-colors hover:bg-[var(--color-border-subtle)] flex-shrink-0"
-        style={{ color: 'var(--color-text-muted)' }}
-      >
-        <ChevronRight size={18} style={{ flexShrink: 0 }} />
-        <span>{boards.length - SIDEBAR_BOARD_LIMIT}개 더 보기</span>
-      </button>
-    )}
-  </div>
-)}
+            {hasMore && (
+              <button
+                onClick={() => navigate('/home')}
+                className="h-[40px] flex items-center gap-3 px-3 rounded-[8px] text-[14px] font-medium transition-colors hover:bg-[var(--color-border-subtle)] flex-shrink-0"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
+                <ChevronRight size={18} style={{ flexShrink: 0 }} />
+                <span>{boards.length - SIDEBAR_BOARD_LIMIT}개 더 보기</span>
+              </button>
+            )}
+          </div>
+        )}
 
         {/* 접혔을 때 flex-1 여백 채우기 */}
         {!open && <div className="flex-1" />}
@@ -151,8 +148,8 @@ const MainSidebar = ({ open }) => {
           <div className="mx-4 mb-3 border-t" style={{ borderColor: 'var(--color-border)' }} />
           <div className="px-4 pb-6 flex flex-col gap-1">
             {[
-              { icon: Settings, label: '설정',   action: () => {} },
-              { icon: BookOpen, label: '블로그',  action: () => window.open('https://youngjin99.tistory.com', '_blank') },
+              { icon: Settings, label: '설정',  action: () => {} },
+              { icon: BookOpen, label: '블로그', action: () => window.open('https://youngjin99.tistory.com', '_blank') },
             ].map(({ icon: Icon, label, action }) => (
               <button
                 key={label}
@@ -171,7 +168,6 @@ const MainSidebar = ({ open }) => {
             ))}
           </div>
         </div>
-
       </aside>
 
       <NewBoardModal
