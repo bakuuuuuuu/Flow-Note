@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Star, SquarePen , Share2, Filter, ArrowUpDown } from 'lucide-react'
+import { Star, SquarePen, Share2, Filter, ArrowUpDown } from 'lucide-react'
 import useBoardStore from '../store/boardStore'
 import useListStore from '../store/listStore'
 import { getCategoryEmoji } from '../constants/categories'
 import Modal from '../components/common/Modal'
 import KanbanBoard from '../components/board/KanbanBoard'
+import CalendarView from '../components/board/CalendarView'
+import CardDetailModal from '../components/board/CardDetailModal'
 import EditBoardModal from '../components/common/EditBoardModal'
 import toast from 'react-hot-toast'
 
@@ -18,6 +20,8 @@ const BoardPage = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
+  const [selectedCard, setSelectedCard] = useState(null)
+  const [cardDetailOpen, setCardDetailOpen] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -64,6 +68,11 @@ const BoardPage = () => {
     }
   }
 
+  const handleCardClick = (card) => {
+    setSelectedCard(card)
+    setCardDetailOpen(true)
+  }
+
   const getDdayText = (deadline) => {
     if (!deadline) return null
     const diff = Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24))
@@ -75,16 +84,12 @@ const BoardPage = () => {
   }
 
   if (!currentBoard) return (
-    <div
-      className="flex items-center justify-center h-full"
-      style={{ color: 'var(--color-text-muted)' }}
-    >
+    <div className="flex items-center justify-center h-full" style={{ color: 'var(--color-text-muted)' }}>
       <p>불러오는 중...</p>
     </div>
   )
 
   const dday = getDdayText(currentBoard.deadline)
-
   const formatDate = (date) =>
     new Date(date).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' })
 
@@ -112,7 +117,7 @@ const BoardPage = () => {
             onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-brand)'}
             onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-muted)'}
           >
-            <SquarePen  size={22} />
+            <SquarePen size={22} />
           </button>
 
           {/* 보드 삭제 — 오른쪽 끝 */}
@@ -219,17 +224,23 @@ const BoardPage = () => {
       {/* ── 탭 콘텐츠 ── */}
       <div className="flex-1 min-h-0">
         {activeTab === 'board' && (
-          <KanbanBoard boardId={id} onCardClick={() => {}} />
+          <KanbanBoard boardId={id} onCardClick={handleCardClick} />
         )}
         {activeTab === 'calendar' && (
-          <div
-            className="flex items-center justify-center h-full"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            <p className="text-[14px]">캘린더 영역 (CalendarView)</p>
-          </div>
+          <CalendarView onCardClick={handleCardClick} />
         )}
       </div>
+
+      {/* ── 카드 상세 모달 (캘린더에서 클릭 시) ── */}
+      <CardDetailModal
+        isOpen={cardDetailOpen}
+        onClose={() => {
+          setCardDetailOpen(false)
+          setSelectedCard(null)
+        }}
+        card={selectedCard}
+        boardTitle={currentBoard?.title}
+      />
 
       {/* ── 보드 수정 모달 ── */}
       <EditBoardModal
@@ -242,10 +253,7 @@ const BoardPage = () => {
       {/* ── 보드 삭제 확인 모달 ── */}
       <Modal isOpen={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} className="max-w-[400px]">
         <div className="p-8">
-          <h2
-            className="text-[22px] font-bold mb-3"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
+          <h2 className="text-[22px] font-bold mb-3" style={{ color: 'var(--color-text-primary)' }}>
             보드를 삭제할까요?
           </h2>
           <p className="text-[14px] mb-8" style={{ color: 'var(--color-text-muted)' }}>
@@ -284,16 +292,10 @@ const BoardPage = () => {
                 opacity: deleteLoading ? 0.6 : 1,
               }}
               onMouseEnter={(e) => {
-                if (!deleteLoading) {
-                  e.currentTarget.style.background = '#c92a2a'
-                  e.currentTarget.style.color = 'rgba(255,255,255,0.85)'
-                }
+                if (!deleteLoading) e.currentTarget.style.background = '#c92a2a'
               }}
               onMouseLeave={(e) => {
-                if (!deleteLoading) {
-                  e.currentTarget.style.background = 'var(--color-status-deadline)'
-                  e.currentTarget.style.color = 'white'
-                }
+                if (!deleteLoading) e.currentTarget.style.background = 'var(--color-status-deadline)'
               }}
             >
               {deleteLoading ? '삭제 중...' : '삭제'}
@@ -301,7 +303,6 @@ const BoardPage = () => {
           </div>
         </div>
       </Modal>
-
     </div>
   )
 }
