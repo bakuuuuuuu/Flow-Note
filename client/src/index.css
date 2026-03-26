@@ -7,14 +7,12 @@
   --color-brand:                #2d408e;
   --color-brand-hover:          #243370;
 
-/* ─── 라이트모드 배경 ──────────────────────────────── */
---color-bg:                   #ffffff;
---color-surface:              #ffffff;
---color-surface-2:            #eef0f8;
---color-header-bg:            rgba(255, 255, 255, 0.85);
---color-sidebar-bg:           rgba(255, 255, 255, 0.85);
---color-border:               #e2e6ea;
---color-border-subtle:        rgba(0, 0, 0, 0.06);
+  /* ─── 라이트모드 배경 ──────────────────────────────── */
+  --color-bg:                   #ffffff;
+  --color-surface:              #ffffff;
+  --color-surface-2:            #eef0f8;
+  --color-header-bg:            rgba(255, 255, 255, 0.85);
+  --color-sidebar-bg:           rgba(255, 255, 255, 0.85);
 
   /* ─── 라이트모드 텍스트 ────────────────────────────── */
   --color-text-primary:         #1a1d23;
@@ -26,14 +24,14 @@
   --color-border-subtle:        rgba(0, 0, 0, 0.06);
 
   /* ─── 다크모드 배경 ────────────────────────────────── */
-  --color-dark-bg:              #111318; 
+  --color-dark-bg:              #111318;
   --color-dark-surface:         #1e2128;
   --color-dark-surface-2:       #282d37;
   --color-dark-header-bg:       rgba(30, 33, 40, 0.9);
   --color-dark-sidebar-bg:      rgba(20, 23, 30, 0.9);
 
   /* ─── 다크모드 텍스트 ──────────────────────────────── */
-  --color-dark-text-primary:    #f0f2f5;   
+  --color-dark-text-primary:    #f0f2f5;
   --color-dark-text-secondary:  rgba(240, 242, 245, 0.65);
   --color-dark-text-muted:      rgba(240, 242, 245, 0.38);
 
@@ -82,6 +80,11 @@
 @keyframes slideDown {
   from { opacity: 0; transform: translateY(-8px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes themeIconSpin {
+  from { transform: rotate(-60deg) scale(0.6); opacity: 0; }
+  to   { transform: rotate(0deg)   scale(1);   opacity: 1; }
 }
 
 /* ─── 전역 기본값 ───────────────────────────────────────── */
