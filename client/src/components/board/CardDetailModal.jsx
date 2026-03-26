@@ -112,10 +112,36 @@ const CardDetailModal = ({ isOpen, onClose, card, boardTitle }) => {
     })
   }
 
+  // ── 기간 처리 — 시작일만 선택 시 당일 마감 자동 설정 ──
+  const handleStartDateChange = (date) => {
+    setForm((prev) => {
+      // 시작일이 마감일보다 늦으면 마감일 초기화
+      const newDue = prev.due_date && date && date > prev.due_date ? null : prev.due_date
+      return { ...prev, start_date: date, due_date: newDue }
+    })
+  }
+
+  const handleDueDateChange = (date) => {
+    setForm((prev) => {
+      // 마감일이 시작일보다 이르면 시작일 초기화
+      const newStart = prev.start_date && date && date < prev.start_date ? null : prev.start_date
+      return { ...prev, due_date: date, start_date: newStart }
+    })
+  }
+
   const handleSubmit = async () => {
     setError('')
     if (!form.title.trim()) {
       setError('카드 제목을 입력해주세요.')
+      return
+    }
+    // ── 기간 유효성 검사 ──
+    if (form.start_date && !form.due_date) {
+      setError('마감일을 입력해주세요.')
+      return
+    }
+    if (!form.start_date && form.due_date) {
+      setError('시작일을 입력해주세요.')
       return
     }
     setLoading(true)
@@ -199,26 +225,20 @@ const CardDetailModal = ({ isOpen, onClose, card, boardTitle }) => {
     <Modal isOpen={isOpen} onClose={handleClose} className="max-w-[600px]">
       <div className="flex flex-col" style={{ maxHeight: '90vh' }}>
 
-        {/* ── 헤더 — 상단 고정 ── */}
+        {/* ── 헤더 ── */}
         <div className="px-8 pt-8 pb-4 flex-shrink-0">
-
-          {/* breadcrumb */}
           <div className="flex items-center gap-1 mb-3 text-[12px]" style={{ color: 'var(--color-text-muted)' }}>
             <span>{boardTitle ?? '보드'}</span>
             <ChevronRight size={12} />
             <span>{currentList?.title ?? '리스트'}</span>
           </div>
-
-          {/* 제목 */}
           <div className="flex items-center justify-between mb-1">
             <span className="text-[13px] font-medium" style={{ color: 'var(--color-text-secondary)' }}>
               할 일 제목
               <span style={{ color: 'var(--color-status-deadline)' }}> *</span>
             </span>
-            <span
-              className="text-[12px]"
-              style={{ color: form.title.length >= 90 ? 'var(--color-status-deadline)' : 'var(--color-text-muted)' }}
-            >
+            <span className="text-[12px]"
+              style={{ color: form.title.length >= 90 ? 'var(--color-status-deadline)' : 'var(--color-text-muted)' }}>
               {form.title.length}/{TITLE_MAX}
             </span>
           </div>
@@ -246,9 +266,7 @@ const CardDetailModal = ({ isOpen, onClose, card, boardTitle }) => {
           <div className="mb-5">
             <div className="flex items-center gap-2 flex-wrap">
               {STATUS_OPTIONS.map((s) => (
-                <button
-                  key={s.value}
-                  type="button"
+                <button key={s.value} type="button"
                   onClick={() => setForm((prev) => ({ ...prev, status: s.value }))}
                   className="h-[28px] px-3 rounded-full text-[12px] font-medium transition-all flex items-center gap-1"
                   style={{
@@ -257,18 +275,14 @@ const CardDetailModal = ({ isOpen, onClose, card, boardTitle }) => {
                     border: `1px solid ${form.status === s.value ? s.color : 'var(--color-border)'}`,
                   }}
                 >
-                  <span
-                    className="w-[6px] h-[6px] rounded-full flex-shrink-0"
-                    style={{ background: form.status === s.value ? 'white' : s.color }}
-                  />
+                  <span className="w-[6px] h-[6px] rounded-full flex-shrink-0"
+                    style={{ background: form.status === s.value ? 'white' : s.color }} />
                   {s.label}
                 </button>
               ))}
               <div className="w-[1px] h-[16px] mx-1" style={{ background: 'var(--color-border)' }} />
               {PRIORITY_OPTIONS.map((p) => (
-                <button
-                  key={p.value}
-                  type="button"
+                <button key={p.value} type="button"
                   onClick={() => setForm((prev) => ({ ...prev, priority: p.value }))}
                   className="h-[28px] px-3 rounded-full text-[12px] font-medium transition-all"
                   style={{
@@ -283,15 +297,11 @@ const CardDetailModal = ({ isOpen, onClose, card, boardTitle }) => {
             </div>
           </div>
 
-          {/* 리스트 변경 드롭다운 */}
+          {/* 리스트 변경 */}
           <div className="mb-5">
-            <label className="block text-[14px] font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-              리스트
-            </label>
+            <label className="block text-[14px] font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>리스트</label>
             <div className="relative">
-              <button
-                type="button"
-                onClick={() => setListOpen((v) => !v)}
+              <button type="button" onClick={() => setListOpen((v) => !v)}
                 className="w-full h-[48px] px-4 rounded-[10px] text-[14px] flex items-center justify-between transition-colors cursor-pointer"
                 style={{
                   background: 'var(--color-surface-2)',
@@ -300,18 +310,14 @@ const CardDetailModal = ({ isOpen, onClose, card, boardTitle }) => {
                 }}
               >
                 <span>{currentList?.title ?? '리스트 선택'}</span>
-                <ChevronDown
-                  size={16}
-                  style={{
-                    color: 'var(--color-text-muted)',
-                    transform: listOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                    transition: 'transform 0.2s ease',
-                  }}
-                />
+                <ChevronDown size={16} style={{
+                  color: 'var(--color-text-muted)',
+                  transform: listOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.2s ease',
+                }} />
               </button>
               {listOpen && (
-                <div
-                  className="absolute top-[50px] left-0 right-0 rounded-[10px] overflow-y-auto z-10"
+                <div className="absolute top-[50px] left-0 right-0 rounded-[10px] overflow-y-auto z-10"
                   style={{
                     background: 'var(--color-surface)',
                     border: '1px solid var(--color-border)',
@@ -320,13 +326,8 @@ const CardDetailModal = ({ isOpen, onClose, card, boardTitle }) => {
                   }}
                 >
                   {lists.map((list) => (
-                    <button
-                      key={list._id}
-                      type="button"
-                      onClick={() => {
-                        setForm((prev) => ({ ...prev, list_id: list._id }))
-                        setListOpen(false)
-                      }}
+                    <button key={list._id} type="button"
+                      onClick={() => { setForm((prev) => ({ ...prev, list_id: list._id })); setListOpen(false) }}
                       className="w-full h-[44px] px-4 flex items-center text-[14px] transition-colors"
                       style={{
                         color: form.list_id === list._id ? 'var(--color-brand)' : 'var(--color-text-primary)',
@@ -346,13 +347,9 @@ const CardDetailModal = ({ isOpen, onClose, card, boardTitle }) => {
           {/* 설명 */}
           <div className="mb-5">
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[14px] font-medium" style={{ color: 'var(--color-text-secondary)' }}>
-                설명
-              </label>
-              <span
-                className="text-[12px]"
-                style={{ color: form.content.length >= 1800 ? 'var(--color-status-deadline)' : 'var(--color-text-muted)' }}
-              >
+              <label className="text-[14px] font-medium" style={{ color: 'var(--color-text-secondary)' }}>설명</label>
+              <span className="text-[12px]"
+                style={{ color: form.content.length >= 1800 ? 'var(--color-status-deadline)' : 'var(--color-text-muted)' }}>
                 {form.content.length}/{CONTENT_MAX}
               </span>
             </div>
@@ -379,47 +376,74 @@ const CardDetailModal = ({ isOpen, onClose, card, boardTitle }) => {
               <span className="flex items-center gap-1">
                 <Calendar size={14} />
                 기간
+                {dday && (
+                  <span className="h-[22px] px-2 rounded-full text-[12px] font-bold flex items-center ml-1 text-white"
+                    style={{ background: dday.color }}>
+                    {dday.label}
+                  </span>
+                )}
               </span>
             </label>
             <div className="flex items-center gap-3">
-              <DatePicker
-                selectsRange
-                startDate={form.start_date}
-                endDate={form.due_date}
-                onChange={([start, end]) =>
-                  setForm((prev) => ({ ...prev, start_date: start, due_date: end }))
-                }
-                locale={ko}
-                dateFormat="yyyy.MM.dd"
-                placeholderText="시작일 - 마감일 선택"
-                wrapperClassName="flex-1"
-                onFocus={(e) => e.target.style.borderColor = 'var(--color-brand)'}
-                onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
-              />
-              {dday && (
-                <span
-                  className="h-[32px] px-3 rounded-full text-[13px] font-bold flex items-center flex-shrink-0 text-white"
-                  style={{ background: dday.color }}
-                >
-                  {dday.label}
-                </span>
-              )}
+              <div className="flex-1">
+                <p className="text-[11px] mb-1" style={{ color: 'var(--color-text-muted)' }}>시작일</p>
+                <DatePicker
+                  selected={form.start_date}
+                  onChange={(date) => {
+                    setForm((prev) => ({
+                      ...prev,
+                      start_date: date,
+                      due_date: prev.due_date && date && date > prev.due_date ? null : prev.due_date,
+                    }))
+                  }}
+                  selectsStart
+                  startDate={form.start_date}
+                  endDate={form.due_date}
+                  locale={ko}
+                  dateFormat="yyyy.MM.dd"
+                  placeholderText="시작일 선택"
+                  wrapperClassName="w-full"
+                  isClearable
+                  onFocus={(e) => e.target.style.borderColor = 'var(--color-brand)'}
+                  onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
+                />
+              </div>
+              <span className="text-[14px] mt-4 flex-shrink-0" style={{ color: 'var(--color-text-muted)' }}>~</span>
+              <div className="flex-1">
+                <p className="text-[11px] mb-1" style={{ color: 'var(--color-text-muted)' }}>마감일</p>
+                <DatePicker
+                  selected={form.due_date}
+                  onChange={(date) => {
+                    setForm((prev) => ({
+                      ...prev,
+                      due_date: date,
+                      start_date: prev.start_date && date && date < prev.start_date ? null : prev.start_date,
+                    }))
+                  }}
+                  selectsEnd
+                  startDate={form.start_date}
+                  endDate={form.due_date}
+                  minDate={form.start_date}
+                  locale={ko}
+                  dateFormat="yyyy.MM.dd"
+                  placeholderText="마감일 선택"
+                  wrapperClassName="w-full"
+                  isClearable
+                  onFocus={(e) => e.target.style.borderColor = 'var(--color-brand)'}
+                  onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
+                />
+              </div>
             </div>
           </div>
 
           {/* 라벨 */}
           <div className="mb-5">
-            <label className="block text-[14px] font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-              라벨
-            </label>
+            <label className="block text-[14px] font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>라벨</label>
             <div className="flex flex-wrap gap-2">
               {LABEL_OPTIONS.map((label) => {
                 const selected = form.selectedLabels.find((l) => l.color === label.color)
                 return (
-                  <button
-                    key={label.color}
-                    type="button"
-                    onClick={() => handleToggleLabel(label)}
+                  <button key={label.color} type="button" onClick={() => handleToggleLabel(label)}
                     className="h-[28px] px-3 rounded-full text-[12px] font-medium transition-all"
                     style={{
                       background: selected ? label.color : 'var(--color-surface-2)',
@@ -436,22 +460,14 @@ const CardDetailModal = ({ isOpen, onClose, card, boardTitle }) => {
 
           {/* 첨부 파일 */}
           <div className="mb-5">
-            <label className="block text-[14px] font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-              첨부 파일
-            </label>
+            <label className="block text-[14px] font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>첨부 파일</label>
             {detail?.attachments && detail.attachments.length > 0 && (
               <div className="flex flex-col gap-2 mb-2">
                 {detail.attachments.map((file) => (
-                  <div
-                    key={file._id}
-                    className="flex items-center gap-3 px-4 h-[44px] rounded-[10px]"
-                    style={{
-                      background: 'var(--color-surface-2)',
-                      border: '1px solid var(--color-border)',
-                    }}
+                  <div key={file._id} className="flex items-center gap-3 px-4 h-[44px] rounded-[10px]"
+                    style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}
                   >
                     <Paperclip size={14} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
-                    {/* 파일명 클릭 시 다운로드 */}
                     <a
                       href={`http://localhost:5000${file.fileUrl}`}
                       download={file.fileName}
@@ -465,84 +481,45 @@ const CardDetailModal = ({ isOpen, onClose, card, boardTitle }) => {
                     <span className="text-[11px] flex-shrink-0" style={{ color: 'var(--color-text-muted)' }}>
                       {(file.fileSize / 1024).toFixed(1)}KB
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => handleFileDelete(file._id)}
+                    <button type="button" onClick={() => handleFileDelete(file._id)}
                       className="flex-shrink-0 text-[11px] transition-colors"
                       style={{ color: 'var(--color-text-muted)' }}
                       onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-status-deadline)'}
                       onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-muted)'}
-                    >
-                      삭제
-                    </button>
+                    >삭제</button>
                   </div>
                 ))}
               </div>
             )}
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={fileLoading}
+            <button type="button" onClick={() => fileInputRef.current?.click()} disabled={fileLoading}
               className="flex items-center gap-2 h-[44px] px-4 rounded-[10px] text-[13px] font-medium cursor-pointer transition-colors border border-dashed w-full"
-              style={{
-                borderColor: 'var(--color-border)',
-                color: 'var(--color-text-muted)',
-                background: 'transparent',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--color-brand)'
-                e.currentTarget.style.color = 'var(--color-brand)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'var(--color-border)'
-                e.currentTarget.style.color = 'var(--color-text-muted)'
-              }}
+              style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-muted)', background: 'transparent' }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--color-brand)'; e.currentTarget.style.color = 'var(--color-brand)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--color-border)'; e.currentTarget.style.color = 'var(--color-text-muted)' }}
             >
               <Paperclip size={14} />
               <span>{fileLoading ? '업로드 중...' : '파일 선택'}</span>
             </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              className="hidden"
-              onChange={handleFileUpload}
-              disabled={fileLoading}
-            />
+            <input ref={fileInputRef} type="file" multiple className="hidden"
+              onChange={handleFileUpload} disabled={fileLoading} />
           </div>
 
           {/* 활동 기록 */}
           {detail?.activities && detail.activities.length > 0 && (
             <div className="mb-4">
-              <label className="block text-[14px] font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-                활동 기록
-              </label>
-              <div
-                className="rounded-[10px] overflow-hidden"
-                style={{
-                  background: 'var(--color-surface-2)',
-                  border: '1px solid var(--color-border)',
-                }}
+              <label className="block text-[14px] font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>활동 기록</label>
+              <div className="rounded-[10px] overflow-hidden"
+                style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}
               >
                 <div className="overflow-y-auto" style={{ maxHeight: '200px' }}>
                   {detail.activities.map((act, i) => (
-                    <div
-                      key={act._id ?? i}
-                      className="flex items-start gap-3 px-4 py-3"
-                      style={{
-                        borderBottom: i < detail.activities.length - 1
-                          ? '1px solid var(--color-border)'
-                          : 'none',
-                      }}
+                    <div key={act._id ?? i} className="flex items-start gap-3 px-4 py-3"
+                      style={{ borderBottom: i < detail.activities.length - 1 ? '1px solid var(--color-border)' : 'none' }}
                     >
-                      <div
-                        className="w-[8px] h-[8px] rounded-full flex-shrink-0 mt-[6px]"
-                        style={{ background: 'var(--color-text-muted)' }}
-                      />
+                      <div className="w-[8px] h-[8px] rounded-full flex-shrink-0 mt-[6px]"
+                        style={{ background: 'var(--color-text-muted)' }} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-[13px]" style={{ color: 'var(--color-text-primary)' }}>
-                          {act.details}
-                        </p>
+                        <p className="text-[13px]" style={{ color: 'var(--color-text-primary)' }}>{act.details}</p>
                         <p className="text-[11px] mt-[2px]" style={{ color: 'var(--color-text-muted)' }}>
                           {new Date(act.createdAt).toLocaleString('ko-KR')}
                         </p>
@@ -554,104 +531,51 @@ const CardDetailModal = ({ isOpen, onClose, card, boardTitle }) => {
             </div>
           )}
 
-          {error && (
-            <p className="text-red-400 text-sm mb-2">{error}</p>
-          )}
+          {error && <p className="text-red-400 text-sm mb-2">{error}</p>}
         </div>
 
-        {/* ── 하단 버튼 — 고정 ── */}
-        <div
-          className="px-8 py-5 flex items-center justify-between flex-shrink-0"
+        {/* ── 하단 버튼 ── */}
+        <div className="px-8 py-5 flex items-center justify-between flex-shrink-0"
           style={{ borderTop: '1px solid var(--color-border)' }}
         >
           {deleteConfirm ? (
             <div className="flex items-center gap-2">
-              <span className="text-[13px]" style={{ color: 'var(--color-text-muted)' }}>
-                정말 삭제할까요?
-              </span>
-              <button
-                type="button"
-                onClick={handleDelete}
-                disabled={deleteLoading}
+              <span className="text-[13px]" style={{ color: 'var(--color-text-muted)' }}>정말 삭제할까요?</span>
+              <button type="button" onClick={handleDelete} disabled={deleteLoading}
                 className="h-[36px] px-4 rounded-[8px] text-[13px] font-medium text-white transition-all"
                 style={{ background: 'var(--color-status-deadline)', opacity: deleteLoading ? 0.6 : 1 }}
-              >
-                {deleteLoading ? '삭제 중...' : '삭제'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setDeleteConfirm(false)}
+              >{deleteLoading ? '삭제 중...' : '삭제'}</button>
+              <button type="button" onClick={() => setDeleteConfirm(false)}
                 className="h-[36px] px-4 rounded-[8px] text-[13px] font-medium transition-all"
-                style={{
-                  background: 'var(--color-surface-2)',
-                  border: '1px solid var(--color-border)',
-                  color: 'var(--color-text-secondary)',
-                }}
-              >
-                취소
-              </button>
+                style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)' }}
+              >취소</button>
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={() => setDeleteConfirm(true)}
+            <button type="button" onClick={() => setDeleteConfirm(true)}
               className="flex items-center gap-2 h-[36px] px-4 rounded-[8px] text-[13px] font-medium transition-all"
-              style={{
-                color: 'var(--color-status-deadline)',
-                border: '1px solid var(--color-status-deadline)',
-                background: 'transparent',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'var(--color-status-deadline)'
-                e.currentTarget.style.color = 'white'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent'
-                e.currentTarget.style.color = 'var(--color-status-deadline)'
-              }}
+              style={{ color: 'var(--color-status-deadline)', border: '1px solid var(--color-status-deadline)', background: 'transparent' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-status-deadline)'; e.currentTarget.style.color = 'white' }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-status-deadline)' }}
             >
               <Trash2 size={14} />
               삭제
             </button>
           )}
           <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={handleClose}
+            <button type="button" onClick={handleClose}
               className="h-[44px] w-[100px] rounded-[10px] text-[14px] font-medium transition-all cursor-pointer"
-              style={{
-                background: 'var(--color-surface-2)',
-                border: '1px solid var(--color-border)',
-                color: 'var(--color-text-secondary)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'var(--color-border)'
-                e.currentTarget.style.color = 'var(--color-text-primary)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'var(--color-surface-2)'
-                e.currentTarget.style.color = 'var(--color-text-secondary)'
-              }}
-            >
-              취소
-            </button>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={loading}
+              style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-border)'; e.currentTarget.style.color = 'var(--color-text-primary)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--color-surface-2)'; e.currentTarget.style.color = 'var(--color-text-secondary)' }}
+            >취소</button>
+            <button type="button" onClick={handleSubmit} disabled={loading}
               className="h-[44px] w-[100px] rounded-[10px] text-[14px] font-semibold text-white transition-all cursor-pointer"
-              style={{
-                background: 'var(--color-brand)',
-                opacity: loading ? 0.6 : 1,
-              }}
+              style={{ background: 'var(--color-brand)', opacity: loading ? 0.6 : 1 }}
               onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = 'var(--color-brand-hover)' }}
               onMouseLeave={(e) => { if (!loading) e.currentTarget.style.background = 'var(--color-brand)' }}
-            >
-              {loading ? '수정 중...' : '수정'}
-            </button>
+            >{loading ? '수정 중...' : '수정'}</button>
           </div>
         </div>
-
       </div>
     </Modal>
   )

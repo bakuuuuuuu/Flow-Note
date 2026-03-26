@@ -70,12 +70,42 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, boardTitle, onSuccess 
     })
   }
 
+  const handleStartDateChange = (date) => {
+    setForm((prev) => {
+      // 시작일이 마감일보다 늦으면 마감일 초기화
+      const newDue = prev.due_date && date && date > prev.due_date ? null : prev.due_date
+      return { ...prev, start_date: date, due_date: newDue }
+    })
+  }
+
+  const handleDueDateChange = (date) => {
+    setForm((prev) => {
+      // 마감일이 시작일보다 이르면 시작일 초기화
+      const newStart = prev.start_date && date && date < prev.start_date ? null : prev.start_date
+      return { ...prev, due_date: date, start_date: newStart }
+    })
+  }
+
   const handleSubmit = async () => {
-    setError('')
-    if (!form.title.trim()) {
-      setError('카드 제목을 입력해주세요.')
-      return
-    }
+  setError('')
+  if (!form.title.trim()) {
+    setError('카드 제목을 입력해주세요.')
+    return
+  }
+  if (form.start_date && !form.due_date) {
+    setError('마감일을 입력해주세요.')
+    return
+  }
+  if (!form.start_date && form.due_date) {
+    setError('시작일을 입력해주세요.')
+    return
+  }
+
+  // ← 임시 디버깅 로그 추가
+  console.log('전송 데이터:', {
+    start_date: form.start_date,
+    due_date: form.due_date,
+  })
     setLoading(true)
     try {
       const newCard = await addCard({
@@ -117,15 +147,11 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, boardTitle, onSuccess 
 
         {/* ── 헤더 — 상단 고정 ── */}
         <div className="px-8 pt-8 pb-4 flex-shrink-0">
-
-          {/* breadcrumb */}
           <div className="flex items-center gap-1 mb-3 text-[12px]" style={{ color: 'var(--color-text-muted)' }}>
             <span>{boardTitle ?? '보드'}</span>
             <ChevronRight size={12} />
             <span>{selectedList?.title ?? '리스트 선택'}</span>
           </div>
-
-          {/* 제목 */}
           <div className="flex items-center justify-between mb-1">
             <span className="text-[13px] font-medium" style={{ color: 'var(--color-text-secondary)' }}>
               할 일 제목
@@ -153,14 +179,10 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, boardTitle, onSuccess 
             onFocus={(e) => e.target.style.borderColor = 'var(--color-brand)'}
             onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
           />
-
-          {/* 상태 + 우선순위 */}
           <div className="mt-3">
             <div className="flex items-center gap-2 flex-wrap">
               {STATUS_OPTIONS.map((s) => (
-                <button
-                  key={s.value}
-                  type="button"
+                <button key={s.value} type="button"
                   onClick={() => setForm((prev) => ({ ...prev, status: s.value }))}
                   className="h-[26px] px-3 rounded-full text-[12px] font-medium transition-all flex items-center gap-1"
                   style={{
@@ -169,18 +191,14 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, boardTitle, onSuccess 
                     border: `1px solid ${form.status === s.value ? s.color : 'var(--color-border)'}`,
                   }}
                 >
-                  <span
-                    className="w-[6px] h-[6px] rounded-full flex-shrink-0"
-                    style={{ background: form.status === s.value ? 'white' : s.color }}
-                  />
+                  <span className="w-[6px] h-[6px] rounded-full flex-shrink-0"
+                    style={{ background: form.status === s.value ? 'white' : s.color }} />
                   {s.label}
                 </button>
               ))}
               <div className="w-[1px] h-[16px] mx-1" style={{ background: 'var(--color-border)' }} />
               {PRIORITY_OPTIONS.map((p) => (
-                <button
-                  key={p.value}
-                  type="button"
+                <button key={p.value} type="button"
                   onClick={() => setForm((prev) => ({ ...prev, priority: p.value }))}
                   className="h-[26px] px-3 rounded-full text-[12px] font-medium transition-all"
                   style={{
@@ -194,7 +212,7 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, boardTitle, onSuccess 
               ))}
             </div>
           </div>
-          </div>
+        </div>
 
         {/* ── 스크롤 영역 ── */}
         <div className="flex-1 overflow-y-auto px-8 pb-2">
@@ -202,13 +220,9 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, boardTitle, onSuccess 
           {/* 설명 */}
           <div className="mb-5">
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[14px] font-medium" style={{ color: 'var(--color-text-secondary)' }}>
-                설명
-              </label>
-              <span
-                className="text-[12px]"
-                style={{ color: form.content.length >= 1800 ? 'var(--color-status-deadline)' : 'var(--color-text-muted)' }}
-              >
+              <label className="text-[14px] font-medium" style={{ color: 'var(--color-text-secondary)' }}>설명</label>
+              <span className="text-[12px]"
+                style={{ color: form.content.length >= 1800 ? 'var(--color-status-deadline)' : 'var(--color-text-muted)' }}>
                 {form.content.length}/{CONTENT_MAX}
               </span>
             </div>
@@ -231,13 +245,9 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, boardTitle, onSuccess 
 
           {/* 리스트 선택 */}
           <div className="mb-5">
-            <label className="block text-[14px] font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-              리스트
-            </label>
+            <label className="block text-[14px] font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>리스트</label>
             <div className="relative">
-              <button
-                type="button"
-                onClick={() => setListOpen((v) => !v)}
+              <button type="button" onClick={() => setListOpen((v) => !v)}
                 className="w-full h-[48px] px-4 rounded-[10px] text-[14px] flex items-center justify-between transition-colors cursor-pointer"
                 style={{
                   background: 'var(--color-surface-2)',
@@ -246,18 +256,14 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, boardTitle, onSuccess 
                 }}
               >
                 <span>{selectedList?.title ?? '리스트 선택'}</span>
-                <ChevronDown
-                  size={16}
-                  style={{
-                    color: 'var(--color-text-muted)',
-                    transform: listOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                    transition: 'transform 0.2s ease',
-                  }}
-                />
+                <ChevronDown size={16} style={{
+                  color: 'var(--color-text-muted)',
+                  transform: listOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.2s ease',
+                }} />
               </button>
               {listOpen && (
-                <div
-                  className="absolute top-[50px] left-0 right-0 rounded-[10px] overflow-y-auto z-10"
+                <div className="absolute top-[50px] left-0 right-0 rounded-[10px] overflow-y-auto z-10"
                   style={{
                     background: 'var(--color-surface)',
                     border: '1px solid var(--color-border)',
@@ -266,13 +272,8 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, boardTitle, onSuccess 
                   }}
                 >
                   {lists.map((list) => (
-                    <button
-                      key={list._id}
-                      type="button"
-                      onClick={() => {
-                        setForm((prev) => ({ ...prev, list_id: list._id }))
-                        setListOpen(false)
-                      }}
+                    <button key={list._id} type="button"
+                      onClick={() => { setForm((prev) => ({ ...prev, list_id: list._id })); setListOpen(false) }}
                       className="w-full h-[44px] px-4 flex items-center text-[14px] transition-colors"
                       style={{
                         color: form.list_id === list._id ? 'var(--color-brand)' : 'var(--color-text-primary)',
@@ -297,35 +298,54 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, boardTitle, onSuccess 
                 기간
               </span>
             </label>
-            <DatePicker
-              selectsRange
-              startDate={form.start_date}
-              endDate={form.due_date}
-              onChange={([start, end]) =>
-                setForm((prev) => ({ ...prev, start_date: start, due_date: end }))
-              }
-              locale={ko}
-              dateFormat="yyyy.MM.dd"
-              placeholderText="시작일 - 마감일 선택"
-              wrapperClassName="w-full"
-              onFocus={(e) => e.target.style.borderColor = 'var(--color-brand)'}
-              onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
-            />
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <p className="text-[11px] mb-1" style={{ color: 'var(--color-text-muted)' }}>시작일</p>
+                <DatePicker
+                  selected={form.start_date}
+                  onChange={handleStartDateChange}
+                  selectsStart
+                  startDate={form.start_date}
+                  endDate={form.due_date}
+                  locale={ko}
+                  dateFormat="yyyy.MM.dd"
+                  placeholderText="시작일 선택"
+                  wrapperClassName="w-full"
+                  isClearable
+                  onFocus={(e) => e.target.style.borderColor = 'var(--color-brand)'}
+                  onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
+                />
+              </div>
+              <span className="text-[14px] mt-4 flex-shrink-0" style={{ color: 'var(--color-text-muted)' }}>~</span>
+              <div className="flex-1">
+                <p className="text-[11px] mb-1" style={{ color: 'var(--color-text-muted)' }}>마감일</p>
+                <DatePicker
+                  selected={form.due_date}
+                  onChange={handleDueDateChange}
+                  selectsEnd
+                  startDate={form.start_date}
+                  endDate={form.due_date}
+                  minDate={form.start_date}
+                  locale={ko}
+                  dateFormat="yyyy.MM.dd"
+                  placeholderText="마감일 선택"
+                  wrapperClassName="w-full"
+                  isClearable
+                  onFocus={(e) => e.target.style.borderColor = 'var(--color-brand)'}
+                  onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
+                />
+              </div>
+            </div>
           </div>
 
           {/* 라벨 */}
           <div className="mb-4">
-            <label className="block text-[14px] font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-              라벨
-            </label>
+            <label className="block text-[14px] font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>라벨</label>
             <div className="flex flex-wrap gap-2">
               {LABEL_OPTIONS.map((label) => {
                 const selected = form.selectedLabels.find((l) => l.color === label.color)
                 return (
-                  <button
-                    key={label.color}
-                    type="button"
-                    onClick={() => handleToggleLabel(label)}
+                  <button key={label.color} type="button" onClick={() => handleToggleLabel(label)}
                     className="h-[28px] px-3 rounded-full text-[12px] font-medium transition-all"
                     style={{
                       background: selected ? label.color : 'var(--color-surface-2)',
@@ -340,52 +360,30 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, boardTitle, onSuccess 
             </div>
           </div>
 
-          {error && (
-            <p className="text-red-400 text-sm mt-2">{error}</p>
-          )}
+          {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
         </div>
 
-        {/* ── 하단 버튼 — 고정 ── */}
-        <div
-          className="px-8 py-5 flex justify-end gap-3 flex-shrink-0"
+        {/* ── 하단 버튼 ── */}
+        <div className="px-8 py-5 flex justify-end gap-3 flex-shrink-0"
           style={{ borderTop: '1px solid var(--color-border)' }}
         >
-          <button
-            type="button"
-            onClick={handleClose}
+          <button type="button" onClick={handleClose}
             className="h-[44px] w-[100px] rounded-[10px] text-[14px] font-medium transition-all cursor-pointer"
             style={{
               background: 'var(--color-surface-2)',
               border: '1px solid var(--color-border)',
               color: 'var(--color-text-secondary)',
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'var(--color-border)'
-              e.currentTarget.style.color = 'var(--color-text-primary)'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'var(--color-surface-2)'
-              e.currentTarget.style.color = 'var(--color-text-secondary)'
-            }}
-          >
-            취소
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={loading}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-border)'; e.currentTarget.style.color = 'var(--color-text-primary)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--color-surface-2)'; e.currentTarget.style.color = 'var(--color-text-secondary)' }}
+          >취소</button>
+          <button type="button" onClick={handleSubmit} disabled={loading}
             className="h-[44px] w-[100px] rounded-[10px] text-[14px] font-semibold text-white transition-all cursor-pointer"
-            style={{
-              background: 'var(--color-brand)',
-              opacity: loading ? 0.6 : 1,
-            }}
+            style={{ background: 'var(--color-brand)', opacity: loading ? 0.6 : 1 }}
             onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = 'var(--color-brand-hover)' }}
             onMouseLeave={(e) => { if (!loading) e.currentTarget.style.background = 'var(--color-brand)' }}
-          >
-            {loading ? '추가 중...' : '+ 추가'}
-          </button>
+          >{loading ? '추가 중...' : '+ 추가'}</button>
         </div>
-
       </div>
     </Modal>
   )

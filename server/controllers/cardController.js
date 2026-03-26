@@ -32,7 +32,7 @@ exports.getCardById = async (req, res) => {
 exports.createCard = async (req, res) => {
   try {
     const { 
-      title, list_id, board_id, content, pos, status, priority, due_date, labels, checklists 
+      title, list_id, board_id, content, pos, status, priority, start_date, due_date, labels, checklists 
     } = req.body;
 
     if (!title || !list_id || !board_id) {
@@ -50,7 +50,10 @@ exports.createCard = async (req, res) => {
       pos: pos || 65535,
       status: status || '대기',
       priority: priority || '보통',
-      due_date, labels: labels || [], checklists: checklists || []
+      start_date,
+      due_date,
+      labels: labels || [],
+      checklists: checklists || []
     });
 
     const savedCard = await newCard.save();
