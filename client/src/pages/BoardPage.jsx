@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Star, SquarePen, Share2, Filter, ArrowUpDown } from 'lucide-react'
+import { Star, SquarePen, Share2, SlidersHorizontal } from 'lucide-react'
 import useBoardStore from '../store/boardStore'
 import useListStore from '../store/listStore'
 import { getCategoryEmoji } from '../constants/categories'
@@ -9,6 +9,8 @@ import KanbanBoard from '../components/board/KanbanBoard'
 import CalendarView from '../components/board/CalendarView'
 import CardDetailModal from '../components/board/CardDetailModal'
 import EditBoardModal from '../components/common/EditBoardModal'
+import ShareModal from '../components/common/ShareModal'
+import FilterModal from '../components/common/FilterModal'
 import toast from 'react-hot-toast'
 
 const BoardPage = () => {
@@ -22,6 +24,9 @@ const BoardPage = () => {
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [selectedCard, setSelectedCard] = useState(null)
   const [cardDetailOpen, setCardDetailOpen] = useState(false)
+  const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [filterModalOpen, setFilterModalOpen] = useState(false)
+  const [activeFilter, setActiveFilter] = useState({ labels: [], statuses: [], deadline: null })
 
   useEffect(() => {
     const load = async () => {
@@ -73,14 +78,23 @@ const BoardPage = () => {
     setCardDetailOpen(true)
   }
 
+  const handleApplyFilter = (filter) => {
+    setActiveFilter(filter)
+  }
+
+  const filterCount =
+    activeFilter.labels.length +
+    activeFilter.statuses.length +
+    (activeFilter.deadline ? 1 : 0)
+
   const getDdayText = (deadline) => {
     if (!deadline) return null
     const diff = Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24))
-    if (diff < 0)  return { label: `D+${Math.abs(diff)}`, color: 'var(--color-text-muted)' }
-    if (diff === 0) return { label: 'D-Day',              color: 'var(--color-status-deadline)' }
-    if (diff <= 3)  return { label: `D-${diff}`,          color: 'var(--color-status-deadline)' }
-    if (diff <= 7)  return { label: `D-${diff}`,          color: 'var(--color-status-doing)' }
-    return              { label: `D-${diff}`,              color: 'var(--color-text-muted)' }
+    if (diff < 0)   return { label: `D+${Math.abs(diff)}`, color: 'var(--color-text-muted)' }
+    if (diff === 0) return { label: 'D-Day',               color: 'var(--color-status-deadline)' }
+    if (diff <= 3)  return { label: `D-${diff}`,           color: 'var(--color-status-deadline)' }
+    if (diff <= 7)  return { label: `D-${diff}`,           color: 'var(--color-status-doing)' }
+    return               { label: `D-${diff}`,             color: 'var(--color-text-muted)' }
   }
 
   if (!currentBoard) return (
@@ -142,7 +156,7 @@ const BoardPage = () => {
           </button>
         </div>
 
-        {/* 즐겨찾기 + 탭 버튼 + 날짜 + Share/Filter/Sort */}
+        {/* 즐겨찾기 + 탭 버튼 + 날짜 + Share/Filter */}
         <div className="flex items-center gap-3">
 
           {/* 즐겨찾기 */}
@@ -198,22 +212,44 @@ const BoardPage = () => {
             </span>
           )}
 
-          {/* Share / Filter / Sort */}
+          {/* Share / Filter */}
           <div className="ml-auto flex items-center gap-4">
-            {[
-              { icon: Share2,      label: 'Share' },
-              { icon: Filter,      label: 'Filter' },
-              { icon: ArrowUpDown, label: 'Sort' },
-            ].map(({ icon: Icon, label }) => (
-              <button
-                key={label}
-                className="flex flex-col items-center justify-center gap-1 h-[36px] text-[11px] transition-colors"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
-                <Icon size={16} />
-                <span>{label}</span>
-              </button>
-            ))}
+
+            {/* Share */}
+            <button
+              onClick={() => setShareModalOpen(true)}
+              className="flex flex-col items-center justify-center gap-1 h-[36px] text-[11px] transition-colors"
+              style={{ color: 'var(--color-text-secondary)' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text-primary)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-secondary)'}
+            >
+              <Share2 size={16} />
+              <span>Share</span>
+            </button>
+
+            {/* Filter */}
+            <button
+              onClick={() => setFilterModalOpen(true)}
+              className="flex flex-col items-center justify-center gap-1 h-[36px] text-[11px] transition-colors"
+              style={{ color: filterCount > 0 ? 'var(--color-brand)' : 'var(--color-text-secondary)' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = filterCount > 0 ? 'var(--color-brand)' : 'var(--color-text-primary)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = filterCount > 0 ? 'var(--color-brand)' : 'var(--color-text-secondary)'}
+            >
+              <div className="relative">
+                <SlidersHorizontal size={16} />
+                {filterCount > 0 && (
+                  <span
+                    className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full text-[9px] font-bold
+                               flex items-center justify-center text-white"
+                    style={{ backgroundColor: 'var(--color-brand)' }}
+                  >
+                    {filterCount}
+                  </span>
+                )}
+              </div>
+              <span>Filter</span>
+            </button>
+
           </div>
         </div>
 
@@ -224,14 +260,14 @@ const BoardPage = () => {
       {/* ── 탭 콘텐츠 ── */}
       <div className="flex-1 min-h-0">
         {activeTab === 'board' && (
-          <KanbanBoard boardId={id} onCardClick={handleCardClick} />
+          <KanbanBoard boardId={id} onCardClick={handleCardClick} filter={activeFilter} />
         )}
         {activeTab === 'calendar' && (
           <CalendarView onCardClick={handleCardClick} />
         )}
       </div>
 
-      {/* ── 카드 상세 모달 (캘린더에서 클릭 시) ── */}
+      {/* ── 카드 상세 모달 ── */}
       <CardDetailModal
         isOpen={cardDetailOpen}
         onClose={() => {
@@ -248,6 +284,21 @@ const BoardPage = () => {
         onClose={() => setEditModalOpen(false)}
         board={currentBoard}
         onSuccess={() => fetchBoardById(id)}
+      />
+
+      {/* ── Share 모달 ── */}
+      <ShareModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        board={currentBoard}
+      />
+
+      {/* ── Filter 모달 ── */}
+      <FilterModal
+        isOpen={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+        onApply={handleApplyFilter}
+        initialFilter={activeFilter}
       />
 
       {/* ── 보드 삭제 확인 모달 ── */}
@@ -303,6 +354,7 @@ const BoardPage = () => {
           </div>
         </div>
       </Modal>
+
     </div>
   )
 }

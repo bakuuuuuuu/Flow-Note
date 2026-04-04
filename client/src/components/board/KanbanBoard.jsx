@@ -17,7 +17,7 @@ import KanbanColumn from './KanbanColumn'
 import KanbanCard from './KanbanCard'
 import CardDetailModal from './CardDetailModal'
 
-const KanbanBoard = ({ boardId, onCardClick }) => {
+const KanbanBoard = ({ boardId, onCardClick, filter = { labels: [], statuses: [], deadline: null } }) => {
   const { lists, setLists } = useListStore()
   const { transferCard } = useCardStore()
   const { isOpen: sidebarOpen } = useSidebarStore()
@@ -194,6 +194,61 @@ const KanbanBoard = ({ boardId, onCardClick }) => {
     }
   }
 
+  // ── 필터링 로직 ──────────────────────────────────────────
+  const applyFilter = (cards) => {
+  const { labels, statuses, deadline } = filter
+  const hasFilter = labels.length > 0 || statuses.length > 0 || deadline
+
+  if (!hasFilter) return cards
+
+  return cards.filter((card) => {
+    // 라벨 필터 — card.labels: [{ color, text }]
+    if (labels.length > 0) {
+      const cardLabelTexts = (card.labels ?? []).map((l) => l.text)
+      const match = labels.some((l) => cardLabelTexts.includes(l))
+      if (!match) return false
+    }
+
+    // 상태 필터 — '대기' | '진행중' | '완료' | '보류'
+    if (statuses.length > 0) {
+      if (!statuses.includes(card.status)) return false
+    }
+
+    // 마감일 필터 — 오늘 이후 ~ 기준일 이내인 카드만
+    if (deadline) {
+      if (!card.due_date) return false
+      const due = new Date(card.due_date)
+      const now = new Date()
+
+      // 오늘 시작 (00:00:00) — 이미 지난 카드 제외
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
+      if (due < startOfToday) return false
+
+      // 기준일 끝 (23:59:59)
+      const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
+
+      const endOfWeek = new Date(endOfToday)
+      endOfWeek.setDate(endOfToday.getDate() + (6 - endOfToday.getDay()))
+
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59)
+
+      if (deadline === 'today' && due > endOfToday) return false
+      if (deadline === 'week'  && due > endOfWeek)  return false
+      if (deadline === 'month' && due > endOfMonth) return false
+    }
+
+    return true
+  })
+}
+
+  const filteredLists = lists.map((list) => ({
+    ...list,
+    cards: applyFilter(list.cards ?? []),
+  }))
+
+  const isFiltering = filter.labels.length > 0 || filter.statuses.length > 0 || filter.deadline
+  // ──────────────────────────────────────────────────────────
+
   const canScrollLeft = scrollPos > 0
   const canScrollRight = maxScroll > 0 && scrollPos < maxScroll - 1
 
@@ -218,6 +273,25 @@ const KanbanBoard = ({ boardId, onCardClick }) => {
           className="relative"
           style={{ height: 'calc(100vh - 260px)', width: '100%' }}
         >
+          {/* ── 필터 적용 중 안내 배너 ── */}
+          {isFiltering && (
+            <div
+              className="absolute top-3 left-1/2 -translate-x-1/2 z-10
+                         px-4 py-1.5 rounded-full text-[12px] font-medium flex items-center gap-2"
+              style={{
+                background: 'var(--color-brand)',
+                color: 'white',
+                boxShadow: '0 2px 8px rgba(45,64,142,0.3)',
+              }}
+            >
+              <span>필터 적용 중</span>
+              <span className="opacity-70">—</span>
+              <span>
+                {filteredLists.reduce((sum, l) => sum + l.cards.length, 0)}개 카드
+              </span>
+            </div>
+          )}
+
           {/* ── 좌측 화살표 ── */}
           {canScrollLeft && (
             <button
@@ -264,7 +338,7 @@ const KanbanBoard = ({ boardId, onCardClick }) => {
               msOverflowStyle: 'none',
             }}
           >
-            {lists.map((list) => (
+            {filteredLists.map((list) => (
               <KanbanColumn
                 key={list._id}
                 list={list}
