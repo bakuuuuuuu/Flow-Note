@@ -12,6 +12,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import ResetPasswordPage from './pages/ResetPasswordPage'
 import BoardListPage from './pages/BoardListPage'
 import BoardPage from './pages/BoardPage'
+import MyPage from './pages/MyPage'
 
 const PrivateRoute = ({ children }) => {
   const { isLoggedIn } = useAuthStore()
@@ -73,7 +74,7 @@ function App() {
           <Route path="/starred"   element={<BoardListPage mode="starred" />} />
           <Route path="/board/:id" element={<BoardPage />} />
           <Route path="/search"    element={<div>검색 준비중</div>} />
-          <Route path="/mypage"    element={<div>마이페이지 준비중</div>} />
+          <Route path="/mypage" element={<MyPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -43,4 +43,13 @@ router.patch(
 // [DELETE] 프로필 이미지 삭제
 router.delete('/profile/image', protect, userController.deleteProfileImage);
 
+// [PATCH] 프로필 수정 (닉네임, 상태메시지)
+router.patch('/profile', protect, userController.updateProfile)
+
+// [PATCH] 비밀번호 변경 (로그인 상태)
+router.patch('/password', protect, userController.updatePassword)
+
+// [DELETE] 회원 탈퇴
+router.delete('/account', protect, userController.deleteAccount)
+
 module.exports = router;

@@ -49,10 +49,13 @@ const ShareModal = ({ isOpen, onClose, board }) => {
           {/* 아바타 w-9 = 36px */}
           <div
             className="w-9 h-9 rounded-full flex items-center justify-center
-                       text-white text-sm font-bold shrink-0"
+                      text-white text-sm font-bold shrink-0 overflow-hidden"
             style={{ background: 'var(--color-brand)' }}
           >
-            {displayInitial}
+            {user?.profile_img && user.profile_img !== 'default_profile.png'
+              ? <img src={`http://localhost:5000${user.profile_img}`} alt="프로필" className="w-full h-full object-cover" />
+              : displayInitial
+            }
           </div>
           <div>
             <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>

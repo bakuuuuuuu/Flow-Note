@@ -7,25 +7,19 @@ import useAuthStore from '../../store/authStore'
 import useThemeStore from '../../store/themeStore'
 import useSidebarStore from '../../store/sidebarStore'
 
-// 사이드바 너비 상수 — MainSidebar와 동일하게 맞춤
-const SIDEBAR_OPEN_WIDTH = 260
+const SIDEBAR_OPEN_WIDTH   = 260
 const SIDEBAR_CLOSED_WIDTH = 64
+const SIDEBAR_PADDING      = 16
 
-// 사이드바 안 버튼들의 좌측 패딩 (MainSidebar의 px-4 = 16px)
-const SIDEBAR_PADDING = 16
-
-const MainHeader = ({ onToggleSidebar }) => {
+const MainHeader = ({ onToggleSidebar, hideToggle = false }) => {
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
   const { isDark, toggleTheme } = useThemeStore()
   const { isOpen } = useSidebarStore()
 
   const handleLogout = async () => {
-    try {
-      await logoutApi()
-    } catch {
-      // 실패해도 로그아웃 처리
-    } finally {
+    try { await logoutApi() } catch {}
+    finally {
       logout()
       toast.success('로그아웃 되었습니다 👏')
       navigate('/login')
@@ -41,8 +35,8 @@ const MainHeader = ({ onToggleSidebar }) => {
         fontSize: '13px',
         padding: '8px 14px',
         background: nextDark ? '#1c1f26' : '#ffffff',
-        color: nextDark ? '#e8eaf0' : '#1a1d23',
-        border: `1px solid ${nextDark ? '#2e323d' : '#e2e6ea'}`,
+        color:      nextDark ? '#e8eaf0' : '#1a1d23',
+        border:     `1px solid ${nextDark ? '#2e323d' : '#e2e6ea'}`,
       },
     })
   }
@@ -52,53 +46,59 @@ const MainHeader = ({ onToggleSidebar }) => {
       className="fixed top-0 left-0 right-0 z-50 h-[72px] flex items-center border-b border-[var(--color-border-subtle)] backdrop-blur-[12px]"
       style={{ background: 'var(--color-header-bg)' }}
     >
-      {/* ── 왼쪽 영역 — 사이드바 너비 고정 ── */}
+      {/* ── 왼쪽 영역 ── */}
       <div
         className="flex items-center flex-shrink-0 transition-all duration-200"
         style={{
-          width: isOpen ? `${SIDEBAR_OPEN_WIDTH}px` : `${SIDEBAR_CLOSED_WIDTH}px`,
+          width: hideToggle
+            ? `${SIDEBAR_OPEN_WIDTH}px`
+            : isOpen
+            ? `${SIDEBAR_OPEN_WIDTH}px`
+            : `${SIDEBAR_CLOSED_WIDTH}px`,
         }}
       >
-        {/* 토글 버튼 — 사이드바 px-4(16px)에 맞춰 정렬 */}
-        <div style={{ paddingLeft: `${SIDEBAR_PADDING}px` }}>
-          <button
-            onClick={onToggleSidebar}
-            className="w-[36px] h-[36px] flex items-center justify-center rounded-[8px] transition-colors flex-shrink-0"
-            style={{ color: 'var(--color-text-secondary)' }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-border-subtle)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-          >
-            <Menu size={20} />
-          </button>
-        </div>
-
-        {/* 로고 — 사이드바 접혔을 때: 사이드바 오른쪽 끝 + 마진으로 위치
-                   사이드바 펼쳤을 때: 토글 버튼 바로 옆 */}
-        {isOpen ? (
-          // 펼쳤을 때 — 토글 버튼 바로 옆
-          <div className="ml-2">
+        {/* 마이페이지 — 패딩 없이 260px 영역 정중앙에 로고 */}
+        {hideToggle ? (
+          <div className="w-full flex items-center justify-center">
             <MainLogoButton showText={true} />
           </div>
         ) : (
-          // 접혔을 때 — 사이드바 오른쪽 끝(64px) 기준으로 마진 주고 로고+텍스트
-          <div
-            style={{
-              position: 'absolute',
-              left: `${SIDEBAR_CLOSED_WIDTH + 12}px`,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <MainLogoButton showText={true} />
-          </div>
+          <>
+            <div style={{ paddingLeft: `${SIDEBAR_PADDING}px` }}>
+              <button
+                onClick={onToggleSidebar}
+                className="w-[36px] h-[36px] flex items-center justify-center rounded-[8px] transition-colors flex-shrink-0"
+                style={{ color: 'var(--color-text-secondary)' }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-border-subtle)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+              >
+                <Menu size={20} />
+              </button>
+            </div>
+
+            {isOpen ? (
+              <div className="ml-2">
+                <MainLogoButton showText={true} />
+              </div>
+            ) : (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: `${SIDEBAR_CLOSED_WIDTH + 12}px`,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <MainLogoButton showText={true} />
+              </div>
+            )}
+          </>
         )}
       </div>
 
-      {/* ── 가운데: 검색바 — 위치 고정 (marginLeft로 사이드바 너비만큼 보정) ── */}
+      {/* ── 가운데: 검색바 ── */}
       <div
         className="flex items-center justify-center flex-shrink-0 transition-all duration-200"
         style={{
-          // 전체 너비에서 왼쪽(사이드바) + 오른쪽(버튼들 ~280px) 제외한 공간
-          // 사이드바 펼쳤을 때 기준으로 고정
           position: 'absolute',
           left: `${SIDEBAR_OPEN_WIDTH}px`,
           right: '280px',
@@ -143,7 +143,7 @@ const MainHeader = ({ onToggleSidebar }) => {
         </div>
       </div>
 
-      {/* ── 오른쪽 — ml-auto로 오른쪽 끝 고정 ── */}
+      {/* ── 오른쪽 ── */}
       <div className="flex items-center gap-1 flex-shrink-0 pr-6 ml-auto">
 
         {/* 다크모드 토글 */}
@@ -175,10 +175,7 @@ const MainHeader = ({ onToggleSidebar }) => {
         </button>
 
         {/* 구분선 */}
-        <div
-          className="w-[1px] h-[20px] mx-2"
-          style={{ background: 'var(--color-border)' }}
-        />
+        <div className="w-[1px] h-[20px] mx-2" style={{ background: 'var(--color-border)' }} />
 
         {/* 프로필 + 닉네임 */}
         <button
@@ -189,10 +186,13 @@ const MainHeader = ({ onToggleSidebar }) => {
           onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
         >
           <div
-            className="w-[26px] h-[26px] rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0"
+            className="w-[26px] h-[26px] rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0 overflow-hidden"
             style={{ background: 'var(--color-brand)' }}
           >
-            {user?.nickname?.[0] ?? 'U'}
+            {user?.profile_img && user.profile_img !== 'default_profile.png'
+              ? <img src={`http://localhost:5000${user.profile_img}`} alt="프로필" className="w-full h-full object-cover" />
+              : user?.nickname?.[0] ?? 'U'
+            }
           </div>
           <span className="text-[13px] font-medium" style={{ color: 'var(--color-text-primary)' }}>
             {user?.nickname ?? '마이페이지'}
