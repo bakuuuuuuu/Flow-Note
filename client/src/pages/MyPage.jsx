@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { User, Bell, Link, Activity, Camera, Lock, Eye, EyeOff, LogOut, Trash2, Check, ChevronRight } from 'lucide-react'
+import { User, Bell, Link, Camera, Lock, Eye, EyeOff, LogOut, Trash2, Check, ChevronRight } from 'lucide-react'
 import useAuthStore from '../store/authStore'
 import {
   getProfile, updateProfile, updatePassword,
@@ -11,7 +11,6 @@ import useNotificationStore from '../store/notificationStore'
 
 const TABS = [
   { key: 'profile',  label: '프로필',    icon: User },
-  { key: 'activity', label: '활동 내역', icon: Activity },
   { key: 'alarm',    label: '알림',      icon: Bell },
   { key: 'connect',  label: '연동',      icon: Link },
 ]
@@ -543,20 +542,6 @@ const MyPage = () => {
                     {pwLoading ? '변경 중...' : '비밀번호 변경'}
                   </button>
                 </div>
-              </div>
-            </>
-          )}
-
-          {/* ═══ 활동 내역 탭 ═══ */}
-          {activeTab === 'activity' && (
-            <>
-              <h2 className="text-[22px] font-bold mb-8" style={{ letterSpacing: '-0.4px' }}>활동 내역</h2>
-              <div
-                className="rounded-xl flex flex-col items-center justify-center py-24"
-                style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}
-              >
-                <Activity size={36} className="mb-3" style={{ color: 'var(--color-text-muted)' }} />
-                <p className="text-[14px]" style={{ color: 'var(--color-text-muted)' }}>활동 내역 기능은 준비 중이에요.</p>
               </div>
             </>
           )}
