@@ -39,6 +39,7 @@ const MainHeader = ({ onToggleSidebar, hideToggle = false }) => {
   const { notifications, unreadCount, fetchNotifications, readOne, readAll } = useNotificationStore()
 
   const [notiOpen, setNotiOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const notiRef = useRef(null)
 
   useEffect(() => {
@@ -79,6 +80,13 @@ const MainHeader = ({ onToggleSidebar, hideToggle = false }) => {
       },
     })
   }
+
+  const handleSearch = (e) => {
+  if (e.key === 'Enter' && searchQuery.trim()) {
+    navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+    setSearchQuery('')
+  }
+}
 
   // 안 읽은 것 우선, 7일 이내, 최대 5개
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
@@ -146,6 +154,9 @@ const MainHeader = ({ onToggleSidebar, hideToggle = false }) => {
           />
           <input
             type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearch}
             placeholder="보드, 카드 검색..."
             className="w-full h-[40px] pl-10 pr-16 rounded-[10px] text-[14px] outline-none transition-all"
             style={{
