@@ -70,7 +70,7 @@ exports.registerUser = async (req, res) => {
       type: 'welcome',
       title: '회원가입을 환영합니다! 🎉',
       content: `${nickname}님, Flow-Note의 회원이 되신 것을 진심으로 환영합니다. 지금 바로 첫 보드를 만들어보세요!`,
-      link_url: '/boards'
+      link_url: '/home'
     });
 
     // 성공 메시지 및 데이터 반환
@@ -137,11 +137,12 @@ exports.loginUser = async (req, res) => {
 
     res.status(200).json({
       message: '로그인 성공!',
-      accessToken, // 클라이언트는 메모리에 저장
+      accessToken,
       user: {
         id: user._id,
         email: user.email,
-        nickname: user.nickname
+        nickname: user.nickname,
+        profile_img: user.profile_img || null
       }
     });
 

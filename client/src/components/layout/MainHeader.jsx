@@ -1,21 +1,60 @@
-import { Search, BellRing, Menu, LogOut, Moon, Sun } from 'lucide-react'
+import { Search, BellRing, Menu, LogOut, Moon, Sun, Check, ChevronRight, Bell } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
 import { logout as logoutApi } from '../../api/authApi'
 import toast from 'react-hot-toast'
 import MainLogoButton from '../common/MainLogoButton'
 import useAuthStore from '../../store/authStore'
 import useThemeStore from '../../store/themeStore'
 import useSidebarStore from '../../store/sidebarStore'
+import useNotificationStore from '../../store/notificationStore'
 
 const SIDEBAR_OPEN_WIDTH   = 260
 const SIDEBAR_CLOSED_WIDTH = 64
 const SIDEBAR_PADDING      = 16
+
+const CATEGORY_MAP = {
+  DEADLINE: { label: '마감 임박', color: 'var(--color-status-deadline)' },
+  UPDATE:   { label: '업데이트', color: 'var(--color-brand)' },
+  SYSTEM:   { label: '시스템',   color: 'var(--color-text-muted)' },
+  COMMENT:  { label: '댓글',     color: 'var(--color-status-doing)' },
+}
+
+const timeAgo = (dateStr) => {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const m = Math.floor(diff / 60000)
+  const h = Math.floor(diff / 3600000)
+  const d = Math.floor(diff / 86400000)
+  if (m < 1)  return '방금 전'
+  if (m < 60) return `${m}분 전`
+  if (h < 24) return `${h}시간 전`
+  return `${d}일 전`
+}
 
 const MainHeader = ({ onToggleSidebar, hideToggle = false }) => {
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
   const { isDark, toggleTheme } = useThemeStore()
   const { isOpen } = useSidebarStore()
+  const { notifications, unreadCount, fetchNotifications, readOne, readAll } = useNotificationStore()
+
+  const [notiOpen, setNotiOpen] = useState(false)
+  const notiRef = useRef(null)
+
+  useEffect(() => {
+    fetchNotifications()
+  }, [])
+
+  // 외부 클릭 시 닫기
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (notiRef.current && !notiRef.current.contains(e.target)) {
+        setNotiOpen(false)
+      }
+    }
+    document.addEventListener('click', handleClick)
+    return () => document.removeEventListener('click', handleClick)
+  }, [])
 
   const handleLogout = async () => {
     try { await logoutApi() } catch {}
@@ -41,6 +80,13 @@ const MainHeader = ({ onToggleSidebar, hideToggle = false }) => {
     })
   }
 
+  // 안 읽은 것 우선, 7일 이내, 최대 5개
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  const previewNotis = [
+    ...notifications.filter(n => !n.is_read),
+    ...notifications.filter(n => n.is_read && new Date(n.createdAt) > sevenDaysAgo),
+  ].slice(0, 5)
+
   return (
     <header
       className="fixed top-0 left-0 right-0 z-50 h-[72px] flex items-center border-b border-[var(--color-border-subtle)] backdrop-blur-[12px]"
@@ -57,7 +103,6 @@ const MainHeader = ({ onToggleSidebar, hideToggle = false }) => {
             : `${SIDEBAR_CLOSED_WIDTH}px`,
         }}
       >
-        {/* 마이페이지 — 패딩 없이 260px 영역 정중앙에 로고 */}
         {hideToggle ? (
           <div className="w-full flex items-center justify-center">
             <MainLogoButton showText={true} />
@@ -75,19 +120,12 @@ const MainHeader = ({ onToggleSidebar, hideToggle = false }) => {
                 <Menu size={20} />
               </button>
             </div>
-
             {isOpen ? (
               <div className="ml-2">
                 <MainLogoButton showText={true} />
               </div>
             ) : (
-              <div
-                style={{
-                  position: 'absolute',
-                  left: `${SIDEBAR_CLOSED_WIDTH + 12}px`,
-                  whiteSpace: 'nowrap',
-                }}
-              >
+              <div style={{ position: 'absolute', left: `${SIDEBAR_CLOSED_WIDTH + 12}px`, whiteSpace: 'nowrap' }}>
                 <MainLogoButton showText={true} />
               </div>
             )}
@@ -98,11 +136,7 @@ const MainHeader = ({ onToggleSidebar, hideToggle = false }) => {
       {/* ── 가운데: 검색바 ── */}
       <div
         className="flex items-center justify-center flex-shrink-0 transition-all duration-200"
-        style={{
-          position: 'absolute',
-          left: `${SIDEBAR_OPEN_WIDTH}px`,
-          right: '280px',
-        }}
+        style={{ position: 'absolute', left: `${SIDEBAR_OPEN_WIDTH}px`, right: '280px' }}
       >
         <div className="relative w-full" style={{ maxWidth: '560px' }}>
           <Search
@@ -131,11 +165,7 @@ const MainHeader = ({ onToggleSidebar, hideToggle = false }) => {
           <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
             <kbd
               className="text-[11px] px-[6px] py-[2px] rounded-[4px] font-medium"
-              style={{
-                background: 'var(--color-border)',
-                color: 'var(--color-text-muted)',
-                border: '1px solid var(--color-border)',
-              }}
+              style={{ background: 'var(--color-border)', color: 'var(--color-text-muted)', border: '1px solid var(--color-border)' }}
             >
               ⌘K
             </kbd>
@@ -155,24 +185,190 @@ const MainHeader = ({ onToggleSidebar, hideToggle = false }) => {
           onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
           title={isDark ? '라이트 모드로 전환' : '다크 모드로 전환'}
         >
-          <span
-            key={isDark ? 'dark' : 'light'}
-            style={{ display: 'flex', animation: 'themeIconSpin 0.35s ease' }}
-          >
+          <span key={isDark ? 'dark' : 'light'} style={{ display: 'flex', animation: 'themeIconSpin 0.35s ease' }}>
             {isDark ? <Sun size={18} /> : <Moon size={18} />}
           </span>
         </button>
 
-        {/* 알림 버튼 */}
-        <button
-          className="w-[36px] h-[36px] flex items-center justify-center rounded-[8px] transition-colors relative"
-          style={{ color: 'var(--color-text-secondary)' }}
-          onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-border-subtle)'}
-          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-          title="알림"
-        >
-          <BellRing size={18} />
-        </button>
+        {/* ── 알림 버튼 + 드롭다운 ── */}
+        <div className="relative" ref={notiRef}>
+          <button
+            onClick={() => setNotiOpen(prev => !prev)}
+            className="w-[36px] h-[36px] flex items-center justify-center rounded-[8px] transition-colors relative"
+            style={{
+              color: notiOpen ? 'var(--color-brand)' : 'var(--color-text-secondary)',
+              background: notiOpen ? 'var(--color-border-subtle)' : 'transparent',
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-border-subtle)'}
+            onMouseLeave={(e) => { if (!notiOpen) e.currentTarget.style.background = 'transparent' }}
+            title="알림"
+          >
+            <BellRing size={18} />
+            {unreadCount > 0 && (
+              <span
+                className="absolute top-1 right-1 w-[14px] h-[14px] rounded-full
+                           flex items-center justify-center text-[9px] font-bold text-white"
+                style={{ background: 'var(--color-status-deadline)' }}
+              >
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </button>
+
+          {/* ── 알림 드롭다운 패널 ── */}
+          {notiOpen && (
+            <div className="absolute right-0 top-[calc(100%+8px)] w-[360px] rounded-2xl z-50"
+              style={{
+                background: 'var(--color-surface)',
+                border: '1px solid var(--color-border)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.14)',
+                animation: 'slideDown 0.18s ease-out',
+              }}
+            >
+              {/* 삼각형 꼭지 */}
+              <div className="absolute -top-[7px] right-[9px] w-[14px] h-[7px] overflow-hidden pointer-events-none">
+                <div
+                  className="absolute top-[3px] left-0 w-[14px] h-[14px] rotate-45 rounded-[2px]"
+                  style={{
+                    background: 'var(--color-surface)',
+                    border: '1px solid var(--color-border)',
+                  }}
+                />
+              </div>
+
+              {/* 패널 헤더 */}
+              <div
+                className="flex items-center justify-between px-4 py-3 border-b rounded-t-2xl overflow-hidden"
+                style={{ borderColor: 'var(--color-border)', background: 'var(--color-surface)' }}
+              >
+                <div className="flex items-center gap-2">
+                  <Bell size={15} style={{ color: 'var(--color-text-primary)' }} />
+                  <span className="text-[14px] font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                    알림
+                  </span>
+                  {unreadCount > 0 && (
+                    <span
+                      className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white"
+                      style={{ background: 'var(--color-status-deadline)' }}
+                    >
+                      {unreadCount}
+                    </span>
+                  )}
+                </div>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={() => readAll()}
+                    className="text-[11px] px-2.5 py-1 rounded-lg transition-colors"
+                    style={{ color: 'var(--color-brand)', background: 'rgba(45,64,142,0.08)' }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(45,64,142,0.14)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(45,64,142,0.08)'}
+                  >
+                    모두 읽음
+                  </button>
+                )}
+              </div>
+
+              {/* 알림 목록 */}
+              <div className="overflow-y-auto rounded-none" style={{ maxHeight: '360px' }}>
+                {previewNotis.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 gap-2">
+                    <Bell size={28} style={{ color: 'var(--color-text-muted)' }} />
+                    <p className="text-[13px]" style={{ color: 'var(--color-text-muted)' }}>
+                      새로운 알림이 없어요
+                    </p>
+                  </div>
+                ) : (
+                  previewNotis.map((noti, idx) => {
+                    const cat = CATEGORY_MAP[noti.category] ?? { label: noti.category, color: 'var(--color-text-muted)' }
+                    return (
+                      <div key={noti._id}>
+                        <div
+                          className="flex items-start gap-3 px-4 py-3 transition-colors cursor-pointer"
+                          style={{ background: noti.is_read ? 'transparent' : 'rgba(45,64,142,0.04)' }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-surface-2)'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = noti.is_read ? 'transparent' : 'rgba(45,64,142,0.04)'}
+                          onClick={() => {
+                            console.log('notifications:', notifications)
+                            readOne(noti._id)
+                            setNotiOpen(false)
+                            // navigate를 setTimeout으로 살짝 지연 — 닫힘 애니메이션 후 이동
+                            if (noti.link_url) {
+                              const url = noti.link_url
+                              const isValid = url.startsWith('/home') ||
+                                              url.startsWith('/board/') ||
+                                              url.startsWith('/mypage') ||
+                                              url.startsWith('/priority') ||
+                                              url.startsWith('/starred')
+                              setTimeout(() => navigate(isValid ? url : '/home'), 50)
+                            }
+                          }}
+                        >
+                          <div className="mt-1.5 shrink-0">
+                            <div
+                              className="w-2 h-2 rounded-full"
+                              style={{ background: noti.is_read ? 'var(--color-border)' : cat.color }}
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                              <span
+                                className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0"
+                                style={{ background: `${cat.color}18`, color: cat.color }}
+                              >
+                                {cat.label}
+                              </span>
+                            </div>
+                            <p
+                              className="text-[13px] font-medium truncate"
+                              style={{ color: noti.is_read ? 'var(--color-text-secondary)' : 'var(--color-text-primary)' }}
+                            >
+                              {noti.title}
+                            </p>
+                            <p className="text-[12px] mt-0.5 truncate" style={{ color: 'var(--color-text-muted)' }}>
+                              {noti.content}
+                            </p>
+                            <p className="text-[11px] mt-1" style={{ color: 'var(--color-text-muted)' }}>
+                              {timeAgo(noti.createdAt)}
+                            </p>
+                          </div>
+                          {!noti.is_read && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); readOne(noti._id) }}
+                              className="w-6 h-6 flex items-center justify-center rounded-full shrink-0 mt-0.5 transition-colors"
+                              style={{ color: 'var(--color-text-muted)' }}
+                              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-surface-2)'; e.currentTarget.style.color = 'var(--color-brand)' }}
+                              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-text-muted)' }}
+                              title="읽음 표시"
+                            >
+                              <Check size={12} />
+                            </button>
+                          )}
+                        </div>
+                        {idx < previewNotis.length - 1 && (
+                          <div className="mx-4 border-t" style={{ borderColor: 'var(--color-border)' }} />
+                        )}
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+
+              {/* 푸터 */}
+              <div className="border-t rounded-b-2xl overflow-hidden" style={{ borderColor: 'var(--color-border)' }}>
+                <button
+                  onClick={() => { navigate('/mypage?tab=alarm'); setNotiOpen(false) }}
+                  className="w-full flex items-center justify-center gap-1.5 py-3 text-[13px] font-medium transition-colors"
+                  style={{ color: 'var(--color-brand)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-surface-2)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                >
+                  전체 알림 보기
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* 구분선 */}
         <div className="w-[1px] h-[20px] mx-2" style={{ background: 'var(--color-border)' }} />

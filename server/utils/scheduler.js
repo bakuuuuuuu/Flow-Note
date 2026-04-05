@@ -10,7 +10,6 @@ cron.schedule('0 * * * *', async () => {
     const now = new Date();
     const tomorrow = new Date(now.getTime() + (24 * 60 * 60 * 1000));
 
-    // 24시간 이내 마감, 미완료, 알림 미발송 카드 조회
     const urgentCards = await Card.find({
       due_date: { $gte: now, $lte: tomorrow },
       status: { $ne: '완료' },
@@ -23,17 +22,15 @@ cron.schedule('0 * * * *', async () => {
     }
 
     for (const card of urgentCards) {
-      // 알림 생성 (기존 유틸리티 함수 활용)
       await createNotification({
         user_id: card.owner_id,
-        category: 'UPDATE',
+        category: 'DEADLINE',       // UPDATE → DEADLINE으로 변경 (카테고리 더 정확하게)
         type: 'deadline_approaching',
         title: '마감 임박 알림',
         content: `'${card.title}' 카드의 마감 시간이 24시간 이내로 남았습니다!`,
-        link_url: `/cards/${card._id}`
+        link_url: `/board/${card.board_id}`  // ← 핵심 수정
       });
 
-      // 알림 발송 상태 업데이트
       card.is_notified = true;
       await card.save();
       

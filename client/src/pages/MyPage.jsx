@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
-import { User, Bell, Link, Activity, Camera, Lock, Eye, EyeOff, LogOut, Trash2 } from 'lucide-react'
+import { User, Bell, Link, Activity, Camera, Lock, Eye, EyeOff, LogOut, Trash2, Check, ChevronRight } from 'lucide-react'
 import useAuthStore from '../store/authStore'
 import {
   getProfile, updateProfile, updatePassword,
   updateProfileImage, deleteProfileImage, deleteAccount, logout,
 } from '../api/authApi'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import useNotificationStore from '../store/notificationStore'
 
 const TABS = [
   { key: 'profile',  label: '프로필',    icon: User },
@@ -15,29 +16,79 @@ const TABS = [
   { key: 'connect',  label: '연동',      icon: Link },
 ]
 
+const CATEGORY_MAP = {
+  DEADLINE: { label: '마감 임박', color: 'var(--color-status-deadline)' },
+  UPDATE:   { label: '업데이트', color: 'var(--color-brand)' },
+  SYSTEM:   { label: '시스템',   color: 'var(--color-text-muted)' },
+  COMMENT:  { label: '댓글',     color: 'var(--color-status-doing)' },
+}
+
+const FILTER_TABS = [
+  { key: 'all',      label: '전체' },
+  { key: 'DEADLINE', label: '마감 임박' },
+  { key: 'UPDATE',   label: '업데이트' },
+  { key: 'SYSTEM',   label: '시스템' },
+]
+
+const groupByDate = (list) => {
+  const now = new Date()
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const startOfWeek  = new Date(startOfToday)
+  startOfWeek.setDate(startOfToday.getDate() - startOfToday.getDay())
+  const groups = { today: [], week: [], older: [] }
+  list.forEach(n => {
+    const d = new Date(n.createdAt)
+    if (d >= startOfToday)     groups.today.push(n)
+    else if (d >= startOfWeek) groups.week.push(n)
+    else                       groups.older.push(n)
+  })
+  return groups
+}
+
 const MyPage = () => {
   const { user, setUser, logout: storeLogout } = useAuthStore()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState('profile')
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const fileInputRef = useRef(null)
 
-  const [pwForm, setPwForm]   = useState({ currentPassword: '', newPassword: '', confirmPassword: '' })
-  const [showPw, setShowPw]   = useState({ current: false, new: false, confirm: false })
+  const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' })
+  const [showPw, setShowPw] = useState({ current: false, new: false, confirm: false })
   const [pwLoading, setPwLoading] = useState(false)
 
-  const [editForm, setEditForm]     = useState({ nickname: '', status_message: '' })
+  const [editForm, setEditForm] = useState({ nickname: '', status_message: '' })
   const [editLoading, setEditLoading] = useState(false)
 
   const [deleteConfirmPw, setDeleteConfirmPw] = useState('')
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
 
+  const [notiFilter, setNotiFilter] = useState('all')
+
+  const {
+    notifications,
+    unreadCount,
+    loading: notiLoading,
+    fetchNotifications,
+    readOne,
+    readAll,
+    removeOne,
+  } = useNotificationStore()
+
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    if (tab) setActiveTab(tab)
+  }, [searchParams])
+
+  useEffect(() => {
+    if (activeTab === 'alarm') fetchNotifications()
+  }, [activeTab])
+
   useEffect(() => {
     const load = async () => {
       try {
         const { data } = await getProfile()
-        console.log('profile data:', data)
         setProfile(data)
         setEditForm({ nickname: data.nickname, status_message: data.status_message ?? '' })
       } catch {
@@ -124,10 +175,30 @@ const MyPage = () => {
     }
   }
 
+  const handleNotiNavigate = (noti) => {
+    readOne(noti._id)
+    const url = noti.link_url
+    const isValid = url && (
+      url.startsWith('/home') ||
+      url.startsWith('/board/') ||
+      url.startsWith('/mypage') ||
+      url.startsWith('/priority') ||
+      url.startsWith('/starred')
+    )
+    navigate(isValid ? url : '/home')
+  }
+
   const profileImgUrl = profile?.profile_img && profile.profile_img !== 'default_profile.png'
     ? `http://localhost:5000${profile.profile_img}`
     : null
   const initial = (profile?.nickname ?? user?.nickname ?? 'U')[0].toUpperCase()
+
+  // 알림 필터링 & 그룹핑
+  const filteredNotis = notiFilter === 'all'
+    ? notifications
+    : notifications.filter(n => n.category === notiFilter)
+  const groups = groupByDate(filteredNotis)
+  const groupLabels = { today: '오늘', week: '이번 주', older: '이전' }
 
   if (loading) return (
     <div className="flex items-center justify-center h-full" style={{ color: 'var(--color-text-muted)' }}>
@@ -135,10 +206,104 @@ const MyPage = () => {
     </div>
   )
 
+  // ── 알림 아이템 컴포넌트 ──
+  const NotiItem = ({ noti }) => {
+    const cat = CATEGORY_MAP[noti.category] ?? { label: noti.category, color: 'var(--color-text-muted)' }
+    return (
+      <div
+        className="relative flex items-start gap-4 px-5 py-4 rounded-xl transition-all overflow-hidden"
+        style={{
+          background: noti.is_read ? 'var(--color-surface-2)' : 'rgba(45,64,142,0.05)',
+          border: `1px solid ${noti.is_read ? 'var(--color-border)' : 'rgba(45,64,142,0.18)'}`,
+        }}
+      >
+        {/* 좌측 컬러 바 */}
+        {!noti.is_read && (
+          <div
+            className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-xl"
+            style={{ background: cat.color }}
+          />
+        )}
+
+        {/* 읽음 여부 점 */}
+        <div className="mt-1 shrink-0 ml-1">
+          <div
+            className="w-2 h-2 rounded-full transition-colors"
+            style={{ background: noti.is_read ? 'var(--color-border)' : cat.color }}
+          />
+        </div>
+
+        {/* 내용 */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span
+              className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+              style={{ background: `${cat.color}18`, color: cat.color }}
+            >
+              {cat.label}
+            </span>
+            <span className="text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
+              {new Date(noti.createdAt).toLocaleDateString('ko-KR', {
+                month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+              })}
+            </span>
+          </div>
+          <p
+            className="text-[14px] font-semibold mb-0.5"
+            style={{ color: noti.is_read ? 'var(--color-text-secondary)' : 'var(--color-text-primary)' }}
+          >
+            {noti.title}
+          </p>
+          <p className="text-[13px]" style={{ color: 'var(--color-text-muted)' }}>
+            {noti.content}
+          </p>
+        </div>
+
+        {/* 액션 버튼 */}
+        <div className="flex items-center gap-1 shrink-0">
+          {noti.link_url && (
+            <button
+              onClick={() => handleNotiNavigate(noti)}
+              className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+              style={{ color: 'var(--color-text-muted)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-surface)'; e.currentTarget.style.color = 'var(--color-brand)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-text-muted)' }}
+              title="바로가기"
+            >
+              <ChevronRight size={16} />
+            </button>
+          )}
+          {!noti.is_read && (
+            <button
+              onClick={() => readOne(noti._id)}
+              className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+              style={{ color: 'var(--color-text-muted)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-surface)'; e.currentTarget.style.color = 'var(--color-brand)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-text-muted)' }}
+              title="읽음 표시"
+            >
+              <Check size={15} />
+            </button>
+          )}
+          <button
+            onClick={() => removeOne(noti._id)}
+            className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+            style={{ color: 'var(--color-text-muted)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.color = 'var(--color-status-deadline)' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--color-text-muted)' }}
+            title="삭제"
+          >
+            <Trash2 size={15} />
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex min-h-[calc(100vh-72px)]" style={{ color: 'var(--color-text-primary)' }}>
 
-      {/* ── 좌측 마이페이지 전용 메뉴바 (사이드바 자리) ── */}
+      {/* ── 좌측 마이페이지 전용 메뉴바 ── */}
       <aside
         className="fixed top-[72px] left-0 h-[calc(100vh-72px)] w-[260px] flex flex-col justify-between py-8 px-4 z-40"
         style={{
@@ -147,7 +312,6 @@ const MyPage = () => {
           backdropFilter: 'blur(15px)',
         }}
       >
-        {/* 탭 메뉴 */}
         <nav className="flex flex-col gap-1">
           {TABS.map(({ key, label, icon: Icon }) => {
             const active = activeTab === key
@@ -164,13 +328,20 @@ const MyPage = () => {
                 onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = 'transparent' }}
               >
                 <Icon size={16} style={{ flexShrink: 0 }} />
-                {label}
+                <span className="flex-1">{label}</span>
+                {key === 'alarm' && unreadCount > 0 && (
+                  <span
+                    className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white"
+                    style={{ background: 'var(--color-status-deadline)' }}
+                  >
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </button>
             )
           })}
         </nav>
 
-        {/* 하단 로그아웃 / 회원탈퇴 */}
         <div className="flex flex-col gap-1">
           <button
             onClick={handleLogout}
@@ -195,12 +366,8 @@ const MyPage = () => {
         </div>
       </aside>
 
-      {/* ── 우측 콘텐츠 — 마이페이지 메뉴바(200px) 오른쪽부터 시작 ── */}
-      <div
-        className="flex-1 overflow-y-auto py-12 px-8"
-        style={{ marginLeft: '260px' }}
-      >
-        {/* GitHub 스타일 — 콘텐츠 중앙 정렬 */}
+      {/* ── 우측 콘텐츠 ── */}
+      <div className="flex-1 overflow-y-auto py-12 px-8" style={{ marginLeft: '260px' }}>
         <div className="max-w-[740px] mx-auto">
 
           {/* ═══ 프로필 탭 ═══ */}
@@ -208,13 +375,8 @@ const MyPage = () => {
             <>
               <h2 className="text-[22px] font-bold mb-8" style={{ letterSpacing: '-0.4px' }}>프로필</h2>
 
-              {/* 프로필 이미지 */}
-              <div
-                className="flex items-center gap-6 mb-8 pb-8 border-b"
-                style={{ borderColor: 'var(--color-border)' }}
-              >
+              <div className="flex items-center gap-6 mb-8 pb-8 border-b" style={{ borderColor: 'var(--color-border)' }}>
                 <div className="relative">
-                  {/* 아바타 */}
                   <div
                     className="w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-bold overflow-hidden"
                     style={{ background: profileImgUrl ? 'transparent' : 'var(--color-brand)' }}
@@ -224,7 +386,6 @@ const MyPage = () => {
                       : initial
                     }
                   </div>
-                  {/* 카메라 버튼 — 흰 테두리로 아바타와 구분 */}
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center transition-colors"
@@ -234,31 +395,16 @@ const MyPage = () => {
                       border: '2px solid var(--color-bg)',
                       boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
                     }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'var(--color-brand)'
-                      e.currentTarget.style.color = 'white'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'var(--color-surface-2)'
-                      e.currentTarget.style.color = 'var(--color-text-secondary)'
-                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-brand)'; e.currentTarget.style.color = 'white' }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--color-surface-2)'; e.currentTarget.style.color = 'var(--color-text-secondary)' }}
                   >
                     <Camera size={13} />
                   </button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleImageChange}
-                  />
+                  <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                 </div>
-
                 <div>
                   <p className="text-[18px] font-semibold mb-0.5">{profile?.nickname}</p>
-                  <p className="text-[13px] mb-3" style={{ color: 'var(--color-text-muted)' }}>
-                    {profile?.email}
-                  </p>
+                  <p className="text-[13px] mb-3" style={{ color: 'var(--color-text-muted)' }}>{profile?.email}</p>
                   {profileImgUrl && (
                     <button
                       onClick={handleImageDelete}
@@ -273,10 +419,8 @@ const MyPage = () => {
                 </div>
               </div>
 
-              {/* 기본 정보 (읽기 전용) */}
               <div className="mb-8">
-                <p className="text-[12px] font-semibold uppercase tracking-wide mb-4"
-                   style={{ color: 'var(--color-text-muted)' }}>
+                <p className="text-[12px] font-semibold uppercase tracking-wide mb-4" style={{ color: 'var(--color-text-muted)' }}>
                   기본 정보
                 </p>
                 <div className="grid grid-cols-2 gap-4">
@@ -288,11 +432,7 @@ const MyPage = () => {
                       <p className="text-[12px] mb-1.5" style={{ color: 'var(--color-text-muted)' }}>{label}</p>
                       <div
                         className="h-11 px-4 rounded-lg flex items-center text-[14px]"
-                        style={{
-                          background: 'var(--color-surface-2)',
-                          border: '1px solid var(--color-border)',
-                          color: 'var(--color-text-secondary)',
-                        }}
+                        style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)' }}
                       >
                         {value}
                       </div>
@@ -301,10 +441,8 @@ const MyPage = () => {
                 </div>
               </div>
 
-              {/* 계정 설정 */}
               <div className="mb-8 pb-8 border-b" style={{ borderColor: 'var(--color-border)' }}>
-                <p className="text-[12px] font-semibold uppercase tracking-wide mb-4"
-                   style={{ color: 'var(--color-text-muted)' }}>
+                <p className="text-[12px] font-semibold uppercase tracking-wide mb-4" style={{ color: 'var(--color-text-muted)' }}>
                   계정 설정
                 </p>
                 <div className="flex flex-col gap-4">
@@ -314,11 +452,7 @@ const MyPage = () => {
                       value={editForm.nickname}
                       onChange={(e) => setEditForm(prev => ({ ...prev, nickname: e.target.value }))}
                       className="w-full h-11 px-4 rounded-lg text-[14px] outline-none transition-colors"
-                      style={{
-                        background: 'var(--color-surface-2)',
-                        border: '1px solid var(--color-border)',
-                        color: 'var(--color-text-primary)',
-                      }}
+                      style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}
                       onFocus={(e) => e.target.style.borderColor = 'var(--color-brand)'}
                       onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
                     />
@@ -331,11 +465,7 @@ const MyPage = () => {
                       placeholder="상태 메시지를 입력하세요 (최대 50자)"
                       maxLength={50}
                       className="w-full h-11 px-4 rounded-lg text-[14px] outline-none transition-colors"
-                      style={{
-                        background: 'var(--color-surface-2)',
-                        border: '1px solid var(--color-border)',
-                        color: 'var(--color-text-primary)',
-                      }}
+                      style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}
                       onFocus={(e) => e.target.style.borderColor = 'var(--color-brand)'}
                       onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
                     />
@@ -345,11 +475,7 @@ const MyPage = () => {
                   <button
                     onClick={() => setEditForm({ nickname: profile?.nickname, status_message: profile?.status_message ?? '' })}
                     className="h-10 px-5 rounded-lg text-[13px] font-medium transition-colors"
-                    style={{
-                      background: 'var(--color-surface-2)',
-                      border: '1px solid var(--color-border)',
-                      color: 'var(--color-text-secondary)',
-                    }}
+                    style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)' }}
                     onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-border)'}
                     onMouseLeave={(e) => e.currentTarget.style.background = 'var(--color-surface-2)'}
                   >
@@ -359,10 +485,7 @@ const MyPage = () => {
                     onClick={handleEditSave}
                     disabled={editLoading}
                     className="h-10 px-5 rounded-lg text-[13px] font-medium text-white transition-colors"
-                    style={{
-                      background: 'var(--color-brand)',
-                      opacity: editLoading ? 0.6 : 1,
-                    }}
+                    style={{ background: 'var(--color-brand)', opacity: editLoading ? 0.6 : 1 }}
                     onMouseEnter={(e) => { if (!editLoading) e.currentTarget.style.background = 'var(--color-brand-hover)' }}
                     onMouseLeave={(e) => { if (!editLoading) e.currentTarget.style.background = 'var(--color-brand)' }}
                   >
@@ -371,16 +494,14 @@ const MyPage = () => {
                 </div>
               </div>
 
-              {/* 비밀번호 변경 */}
               <div>
-                <p className="text-[12px] font-semibold uppercase tracking-wide mb-4 flex items-center gap-1.5"
-                   style={{ color: 'var(--color-text-muted)' }}>
+                <p className="text-[12px] font-semibold uppercase tracking-wide mb-4 flex items-center gap-1.5" style={{ color: 'var(--color-text-muted)' }}>
                   <Lock size={12} /> 비밀번호 변경
                 </p>
                 <div className="flex flex-col gap-3">
                   {[
-                    { key: 'currentPassword', label: '현재 비밀번호',   showKey: 'current' },
-                    { key: 'newPassword',     label: '새 비밀번호',     showKey: 'new' },
+                    { key: 'currentPassword', label: '현재 비밀번호',    showKey: 'current' },
+                    { key: 'newPassword',     label: '새 비밀번호',      showKey: 'new' },
                     { key: 'confirmPassword', label: '새 비밀번호 확인', showKey: 'confirm' },
                   ].map(({ key, label, showKey }) => (
                     <div key={key}>
@@ -391,11 +512,7 @@ const MyPage = () => {
                           value={pwForm[key]}
                           onChange={(e) => setPwForm(prev => ({ ...prev, [key]: e.target.value }))}
                           className="w-full h-11 px-4 pr-11 rounded-lg text-[14px] outline-none transition-colors"
-                          style={{
-                            background: 'var(--color-surface-2)',
-                            border: '1px solid var(--color-border)',
-                            color: 'var(--color-text-primary)',
-                          }}
+                          style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}
                           onFocus={(e) => e.target.style.borderColor = 'var(--color-brand)'}
                           onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
                         />
@@ -439,9 +556,7 @@ const MyPage = () => {
                 style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}
               >
                 <Activity size={36} className="mb-3" style={{ color: 'var(--color-text-muted)' }} />
-                <p className="text-[14px]" style={{ color: 'var(--color-text-muted)' }}>
-                  활동 내역 기능은 준비 중이에요.
-                </p>
+                <p className="text-[14px]" style={{ color: 'var(--color-text-muted)' }}>활동 내역 기능은 준비 중이에요.</p>
               </div>
             </>
           )}
@@ -449,16 +564,109 @@ const MyPage = () => {
           {/* ═══ 알림 탭 ═══ */}
           {activeTab === 'alarm' && (
             <>
-              <h2 className="text-[22px] font-bold mb-8" style={{ letterSpacing: '-0.4px' }}>알림</h2>
+              {/* 헤더 */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-[22px] font-bold flex items-center gap-2" style={{ letterSpacing: '-0.4px' }}>
+                  알림
+                  {unreadCount > 0 && (
+                    <span
+                      className="text-[13px] font-semibold px-2 py-0.5 rounded-full text-white"
+                      style={{ background: 'var(--color-status-deadline)' }}
+                    >
+                      {unreadCount}
+                    </span>
+                  )}
+                </h2>
+                {unreadCount > 0 && (
+                  <button
+                    onClick={readAll}
+                    className="text-[13px] px-4 py-2 rounded-lg transition-colors"
+                    style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)' }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-border)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'var(--color-surface-2)'}
+                  >
+                    모두 읽음
+                  </button>
+                )}
+              </div>
+
+              {/* 카테고리 필터 탭 */}
               <div
-                className="rounded-xl flex flex-col items-center justify-center py-24"
+                className="flex gap-1 mb-6 p-1 rounded-xl"
                 style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}
               >
-                <Bell size={36} className="mb-3" style={{ color: 'var(--color-text-muted)' }} />
-                <p className="text-[14px]" style={{ color: 'var(--color-text-muted)' }}>
-                  알림 기능은 준비 중이에요.
-                </p>
+                {FILTER_TABS.map(tab => {
+                  const tabUnread = tab.key === 'all'
+                    ? 0
+                    : notifications.filter(n => n.category === tab.key && !n.is_read).length
+                  return (
+                    <button
+                      key={tab.key}
+                      onClick={() => setNotiFilter(tab.key)}
+                      className="flex-1 py-1.5 rounded-lg text-[12px] font-medium transition-all flex items-center justify-center gap-1"
+                      style={{
+                        background: notiFilter === tab.key ? 'var(--color-surface)' : 'transparent',
+                        color: notiFilter === tab.key ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
+                        boxShadow: notiFilter === tab.key ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                      }}
+                    >
+                      {tab.label}
+                      {tabUnread > 0 && (
+                        <span
+                          className="text-[9px] font-bold px-1 py-0.5 rounded-full text-white"
+                          style={{ background: 'var(--color-status-deadline)' }}
+                        >
+                          {tabUnread}
+                        </span>
+                      )}
+                    </button>
+                  )
+                })}
               </div>
+
+              {/* 알림 목록 */}
+              {notiLoading ? (
+                <div className="flex items-center justify-center py-20" style={{ color: 'var(--color-text-muted)' }}>
+                  불러오는 중...
+                </div>
+              ) : filteredNotis.length === 0 ? (
+                <div
+                  className="rounded-xl flex flex-col items-center justify-center py-24"
+                  style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)' }}
+                >
+                  <Bell size={36} className="mb-3" style={{ color: 'var(--color-text-muted)' }} />
+                  <p className="text-[14px]" style={{ color: 'var(--color-text-muted)' }}>
+                    {notiFilter === 'all' ? '알림이 없어요.' : '해당 카테고리의 알림이 없어요.'}
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-6">
+                  {Object.entries(groups).map(([groupKey, items]) => {
+                    if (items.length === 0) return null
+                    return (
+                      <div key={groupKey}>
+                        {/* 날짜 그룹 라벨 */}
+                        <div className="flex items-center gap-3 mb-3">
+                          <span
+                            className="text-[11px] font-semibold uppercase tracking-wide shrink-0"
+                            style={{ color: 'var(--color-text-muted)' }}
+                          >
+                            {groupLabels[groupKey]}
+                          </span>
+                          <div className="flex-1 h-px" style={{ background: 'var(--color-border)' }} />
+                          <span className="text-[11px] shrink-0" style={{ color: 'var(--color-text-muted)' }}>
+                            {items.length}건
+                          </span>
+                        </div>
+                        {/* 알림 아이템 */}
+                        <div className="flex flex-col gap-2">
+                          {items.map(noti => <NotiItem key={noti._id} noti={noti} />)}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </>
           )}
 
@@ -468,7 +676,8 @@ const MyPage = () => {
               <h2 className="text-[22px] font-bold mb-8" style={{ letterSpacing: '-0.4px' }}>연동</h2>
               {[
                 { name: 'Google', desc: 'Google 계정으로 간편 로그인' },
-                { name: 'GitHub', desc: 'GitHub 계정으로 간편 로그인' },
+                { name: 'Kakao',  desc: 'Kakao 계정으로 간편 로그인' },
+                { name: 'Naver',  desc: 'Naver 계정으로 간편 로그인' },
               ].map(({ name, desc }) => (
                 <div
                   key={name}
@@ -481,11 +690,7 @@ const MyPage = () => {
                   </div>
                   <div
                     className="text-[12px] px-3 py-1.5 rounded-lg"
-                    style={{
-                      background: 'var(--color-surface)',
-                      border: '1px solid var(--color-border)',
-                      color: 'var(--color-text-muted)',
-                    }}
+                    style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}
                   >
                     준비 중
                   </div>
@@ -521,11 +726,7 @@ const MyPage = () => {
               value={deleteConfirmPw}
               onChange={(e) => setDeleteConfirmPw(e.target.value)}
               className="w-full h-11 px-4 rounded-lg text-[14px] outline-none mb-5"
-              style={{
-                background: 'var(--color-surface-2)',
-                border: '1px solid var(--color-border)',
-                color: 'var(--color-text-primary)',
-              }}
+              style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}
               onFocus={(e) => e.target.style.borderColor = 'var(--color-status-deadline)'}
               onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
             />
@@ -533,11 +734,7 @@ const MyPage = () => {
               <button
                 onClick={() => { setDeleteModalOpen(false); setDeleteConfirmPw('') }}
                 className="h-10 px-5 rounded-lg text-[13px] font-medium"
-                style={{
-                  background: 'var(--color-surface-2)',
-                  border: '1px solid var(--color-border)',
-                  color: 'var(--color-text-secondary)',
-                }}
+                style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)' }}
               >
                 취소
               </button>
@@ -545,10 +742,7 @@ const MyPage = () => {
                 onClick={handleDeleteAccount}
                 disabled={!deleteConfirmPw}
                 className="h-10 px-5 rounded-lg text-[13px] font-semibold text-white"
-                style={{
-                  background: 'var(--color-status-deadline)',
-                  opacity: !deleteConfirmPw ? 0.5 : 1,
-                }}
+                style={{ background: 'var(--color-status-deadline)', opacity: !deleteConfirmPw ? 0.5 : 1 }}
               >
                 탈퇴하기
               </button>
