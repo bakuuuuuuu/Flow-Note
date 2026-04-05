@@ -82,8 +82,17 @@ const MainHeader = ({ onToggleSidebar, hideToggle = false }) => {
   }
 
   const handleSearch = (e) => {
-  if (e.key === 'Enter' && searchQuery.trim()) {
-    navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+  if (e.key === 'Enter') {
+    const trimmed = searchQuery.trim()
+    if (!trimmed) {
+      toast.error('검색어를 입력해주세요.')
+      return
+    }
+    if (trimmed.length < 2) {
+      toast.error('검색어를 2글자 이상 입력해주세요.')
+      return
+    }
+    navigate(`/search?q=${encodeURIComponent(trimmed)}`)
     setSearchQuery('')
   }
 }
@@ -394,7 +403,7 @@ const MainHeader = ({ onToggleSidebar, hideToggle = false }) => {
         >
           <div
             className="w-[26px] h-[26px] rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0 overflow-hidden"
-            style={{ background: 'var(--color-brand)' }}
+            style={{ background: 'var(--color-brand)', border: '1.5px solid var(--color-border)' }}
           >
             {user?.profile_img && user.profile_img !== 'default_profile.png'
               ? <img src={`http://localhost:5000${user.profile_img}`} alt="프로필" className="w-full h-full object-cover" />

@@ -53,7 +53,6 @@ exports.deleteSearchHistory = async (req, res) => {
   }
 };
 
-// [통합 검색 — 보드 + 카드]
 exports.search = async (req, res) => {
   try {
     const { q } = req.query
@@ -62,15 +61,17 @@ exports.search = async (req, res) => {
     }
 
     const keyword = q.trim()
-    const regex = new RegExp(keyword, 'i') // 대소문자 무시
+    if (keyword.length < 2) {
+      return res.status(400).json({ message: '검색어를 2글자 이상 입력해주세요.' })
+    }
 
-    // 보드 검색 — 제목 기준, 내 보드만
+    const regex = new RegExp(keyword, 'i')
+
     const boards = await Board.find({
       owner_id: req.user._id,
       title: { $regex: regex }
     }).sort({ updatedAt: -1 }).limit(10)
 
-    // 카드 검색 — 제목 or 내용 기준, 내 보드의 카드만
     const myBoardIds = (await Board.find({ owner_id: req.user._id }).select('_id')).map(b => b._id)
 
     const cards = await Card.find({
@@ -81,7 +82,6 @@ exports.search = async (req, res) => {
       ]
     }).sort({ updatedAt: -1 }).limit(20)
 
-    // 카드에 보드 정보 붙이기
     const boardMap = {}
     const allBoards = await Board.find({ _id: { $in: cards.map(c => c.board_id) } }).select('_id title category')
     allBoards.forEach(b => { boardMap[b._id.toString()] = b })
