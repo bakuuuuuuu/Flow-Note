@@ -30,3 +30,12 @@ export const updateProfileImage = (formData) => api.patch('/users/profile/image'
 
 // [프로필 이미지 삭제]
 export const deleteProfileImage = () => api.delete('/users/profile/image')
+
+// [프로필 수정]
+export const updateProfile = (data) => api.patch('/users/profile', data)
+
+// [비밀번호 변경 (로그인 상태)]
+export const updatePassword = (data) => api.patch('/users/password', data)
+
+// [회원 탈퇴]
+export const deleteAccount = (data) => api.delete('/users/account', { data })

@@ -17,6 +17,7 @@ const NewBoardModal = ({ isOpen, onClose, onSuccess }) => {
     title: '',
     category: CATEGORIES[0].label,
     categoryEmoji: CATEGORIES[0].emoji,
+    startDate: null,
     deadline: null,
   })
   const [lists, setLists] = useState([...DEFAULT_LISTS])
@@ -59,6 +60,7 @@ const NewBoardModal = ({ isOpen, onClose, onSuccess }) => {
       const newBoard = await addBoard({
         title: form.title.trim(),
         category: form.category,
+        start_date: form.startDate ? form.startDate.toISOString() : null,
         deadline: form.deadline ? form.deadline.toISOString() : null,
         lists: filteredLists,
       })
@@ -72,7 +74,13 @@ const NewBoardModal = ({ isOpen, onClose, onSuccess }) => {
   }
 
   const handleClose = () => {
-    setForm({ title: '', category: CATEGORIES[0].label, categoryEmoji: CATEGORIES[0].emoji, deadline: null })
+    setForm({
+      title: '',
+      category: CATEGORIES[0].label,
+      categoryEmoji: CATEGORIES[0].emoji,
+      startDate: null,
+      deadline: null,
+    })
     setLists([...DEFAULT_LISTS])
     setError('')
     setDropdownOpen(false)
@@ -171,18 +179,22 @@ const NewBoardModal = ({ isOpen, onClose, onSuccess }) => {
           </div>
         </div>
 
-        {/* ── 마감일 ── */}
+        {/* ── 기간 설정 (시작일 ~ 마감일) ── */}
         <div className="mb-5">
           <label className="block text-[15px] font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-            마감일
+            기간
           </label>
           <DatePicker
-            selected={form.deadline}
-            onChange={(date) => setForm((prev) => ({ ...prev, deadline: date }))}
+            selectsRange
+            startDate={form.startDate}
+            endDate={form.deadline}
+            onChange={([start, end]) =>
+              setForm((prev) => ({ ...prev, startDate: start, deadline: end }))
+            }
             minDate={new Date()}
             locale={ko}
-            dateFormat="yyyy년 MM월 dd일"
-            placeholderText="날짜를 선택하세요"
+            dateFormat="yyyy.MM.dd"
+            placeholderText="시작일 - 마감일 선택"
             wrapperClassName="w-full"
             onFocus={(e) => e.target.style.borderColor = 'var(--color-brand)'}
             onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
@@ -200,7 +212,6 @@ const NewBoardModal = ({ isOpen, onClose, onSuccess }) => {
             </span>
           </div>
 
-          {/* 리스트 입력 — 고정 높이 스크롤 */}
           <div
             className="flex flex-col gap-2 overflow-y-auto pr-1"
             style={{ maxHeight: '180px' }}
@@ -245,7 +256,6 @@ const NewBoardModal = ({ isOpen, onClose, onSuccess }) => {
             ))}
           </div>
 
-          {/* 리스트 추가 버튼 — 스크롤 영역 밖 고정 */}
           {lists.length < MAX_LISTS && (
             <button
               type="button"

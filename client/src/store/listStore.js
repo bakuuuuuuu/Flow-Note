@@ -11,7 +11,10 @@ const useListStore = create((set) => ({
     set({ loading: true, error: null })
     try {
       const { data: newList } = await createList(data)
-      set((state) => ({ lists: [...state.lists, { ...newList, cards: [] }] }))
+      set((state) => ({
+        lists: [...state.lists, { ...newList, cards: [] }]
+          .sort((a, b) => a.pos - b.pos),  // pos 기준 정렬
+      }))
       return newList
     } catch (err) {
       set({ error: err.response?.data?.message || '리스트 생성 실패' })

@@ -17,10 +17,11 @@ const cardSchema = new mongoose.Schema({
   content: { type: String, default: "" },
 
   // 일정 및 알림
+  start_date: { type: Date },
   due_date: { type: Date },
   remind_before: { type: Number, default: 0 },
   is_notified: { type: Boolean, default: false },
-  
+    
   // 정렬 및 상태
   pos: { type: Number, required: true, default: 65535 },
   status: { 

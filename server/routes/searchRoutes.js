@@ -14,4 +14,7 @@ router.get('/history', protect, searchController.getRecentSearches);
 // [DELETE] 특정 검색 기록 삭제 (ID 기준)
 router.delete('/history/:id', protect, searchController.deleteSearchHistory);
 
+// [GET] 통합 검색
+router.get('/', protect, searchController.search);
+
 module.exports = router;

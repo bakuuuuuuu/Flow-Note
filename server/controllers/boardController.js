@@ -8,11 +8,12 @@ const path = require('path');
 // [보드 생성]
 exports.createBoard = async (req, res) => {
   try {
-    const { title, category, deadline, bg_theme, is_starred, lists } = req.body;
+    const { title, category, start_date, deadline, bg_theme, is_starred, lists } = req.body;
 
     const newBoard = new Board({
       title,
       category,
+      start_date,
       deadline,
       is_starred: is_starred || false,
       bg_theme: bg_theme || 'default-theme',
@@ -22,7 +23,6 @@ exports.createBoard = async (req, res) => {
 
     const savedBoard = await newBoard.save();
 
-    // 리스트 생성 (프론트에서 받은 이름으로, pos는 순서대로)
     const listTitles = lists && lists.length > 0
       ? lists
       : ['할 일', '진행 중', '완료']
@@ -46,15 +46,27 @@ exports.createBoard = async (req, res) => {
 // [내 보드 목록 조회]
 exports.getBoards = async (req, res) => {
   try {
-    const boards = await Board.find({ owner_id: req.user._id }).sort({ createdAt: -1 });
-    res.status(200).json(boards);
+    const boards = await Board.find({ owner_id: req.user._id }).sort({ createdAt: -1 })
+
+    // 각 보드별 카드 수 집계
+    const boardsWithCount = await Promise.all(
+      boards.map(async (board) => {
+        const cardCount = await Card.countDocuments({ board_id: board._id })
+        return {
+          ...board._doc,
+          cardCount,
+        }
+      })
+    )
+
+    res.status(200).json(boardsWithCount)
   } catch (error) {
-    res.status(500).json({ 
-      message: '보드 목록을 가져오는데 실패했습니다.', 
-      error: error.message 
-    });
+    res.status(500).json({
+      message: '보드 목록을 가져오는데 실패했습니다.',
+      error: error.message
+    })
   }
-};
+}
 
 // [특정 보드 상세 조회 (ID 기준)]
 exports.getBoardById = async (req, res) => {
@@ -68,7 +80,9 @@ exports.getBoardById = async (req, res) => {
 
     const listsWithCards = await Promise.all(
       lists.map(async (list) => {
-        const cards = await Card.find({ list_id: list._id }).sort('pos');
+        const cards = await Card.find({ list_id: list._id })
+          .sort('pos')
+          .populate('owner_id', 'nickname')
         return {
           ...list._doc,
           cards: cards
@@ -89,7 +103,7 @@ exports.getBoardById = async (req, res) => {
 exports.updateBoard = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, category, deadline, bg_theme, is_starred } = req.body;
+    const { title, category, start_date, deadline, bg_theme, is_starred } = req.body;
 
     let board = await Board.findById(id);
     if (!board || board.owner_id.toString() !== req.user._id.toString()) {
@@ -98,12 +112,12 @@ exports.updateBoard = async (req, res) => {
 
     board.title = title || board.title;
     board.category = category || board.category;
-    board.deadline = deadline || board.deadline;
+    board.start_date = start_date !== undefined ? start_date : board.start_date;
+    board.deadline = deadline !== undefined ? deadline : board.deadline;
     board.bg_theme = bg_theme || board.bg_theme;
     if (is_starred !== undefined) board.is_starred = is_starred;
 
     const updatedBoard = await board.save();
-
     res.status(200).json(updatedBoard);
   } catch (error) {
     res.status(500).json({ message: '보드 수정 실패', error: error.message });

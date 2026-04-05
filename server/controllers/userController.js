@@ -70,7 +70,7 @@ exports.registerUser = async (req, res) => {
       type: 'welcome',
       title: '회원가입을 환영합니다! 🎉',
       content: `${nickname}님, Flow-Note의 회원이 되신 것을 진심으로 환영합니다. 지금 바로 첫 보드를 만들어보세요!`,
-      link_url: '/boards'
+      link_url: '/home'
     });
 
     // 성공 메시지 및 데이터 반환
@@ -137,11 +137,12 @@ exports.loginUser = async (req, res) => {
 
     res.status(200).json({
       message: '로그인 성공!',
-      accessToken, // 클라이언트는 메모리에 저장
+      accessToken,
       user: {
         id: user._id,
         email: user.email,
-        nickname: user.nickname
+        nickname: user.nickname,
+        profile_img: user.profile_img || null
       }
     });
 
@@ -354,3 +355,89 @@ exports.deleteProfileImage = async (req, res) => {
     res.status(500).json({ message: '서버 에러 발생', error: error.message });
   }
 };
+
+// [프로필 수정 (닉네임, 상태메시지)]
+exports.updateProfile = async (req, res) => {
+  try {
+    const { nickname, status_message } = req.body
+
+    // 닉네임 중복 확인 (본인 제외)
+    if (nickname) {
+      const exists = await User.findOne({ nickname, _id: { $ne: req.user._id } })
+      if (exists) {
+        return res.status(409).json({ message: '이미 사용 중인 닉네임입니다.' })
+      }
+    }
+
+    const updated = await User.findByIdAndUpdate(
+      req.user._id,
+      { $set: { nickname, status_message } },
+      { new: true, runValidators: true }
+    ).select('-password')
+
+    res.status(200).json({
+      message: '프로필이 수정되었습니다.',
+      user: {
+        _id: updated._id,
+        email: updated.email,
+        nickname: updated.nickname,
+        name: updated.name,
+        profile_img: updated.profile_img,
+        status_message: updated.status_message,
+      }
+    })
+  } catch (error) {
+    res.status(500).json({ message: '서버 에러 발생', error: error.message })
+  }
+}
+
+// [비밀번호 변경 (로그인 상태에서)]
+exports.updatePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: '현재 비밀번호와 새 비밀번호를 입력해주세요.' })
+    }
+
+    const user = await User.findById(req.user._id)
+    const isMatch = await bcrypt.compare(currentPassword, user.password)
+    if (!isMatch) {
+      return res.status(400).json({ message: '현재 비밀번호가 일치하지 않습니다.' })
+    }
+
+    // 새 비밀번호 유효성 검사
+    const { error } = require('../validators/userValidator').resetPasswordSchema.validate({ password: newPassword })
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message })
+    }
+
+    const salt = await bcrypt.genSalt(10)
+    user.password = await bcrypt.hash(newPassword, salt)
+    await user.save()
+
+    res.status(200).json({ message: '비밀번호가 변경되었습니다.' })
+  } catch (error) {
+    res.status(500).json({ message: '서버 에러 발생', error: error.message })
+  }
+}
+
+// [회원 탈퇴]
+exports.deleteAccount = async (req, res) => {
+  try {
+    const { password } = req.body
+    const user = await User.findById(req.user._id)
+
+    const isMatch = await bcrypt.compare(password, user.password)
+    if (!isMatch) {
+      return res.status(400).json({ message: '비밀번호가 일치하지 않습니다.' })
+    }
+
+    await User.findByIdAndDelete(req.user._id)
+
+    res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'Lax' })
+    res.status(200).json({ message: '회원 탈퇴가 완료되었습니다.' })
+  } catch (error) {
+    res.status(500).json({ message: '서버 에러 발생', error: error.message })
+  }
+}

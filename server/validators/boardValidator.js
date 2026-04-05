@@ -8,6 +8,7 @@ const boardSchema = Joi.object({
   category: Joi.string()
     .valid('프로젝트', '개발', '업무', '학습', '아이디어', '노트', '일정', '일상', '재정', '운동', '여행', '기타')
     .default('기타'),
+  start_date: Joi.date().iso().allow(null, ''),
   deadline: Joi.date().iso().allow(null, ''),
   bg_theme: Joi.string().default('default-theme'),
   is_starred: Joi.boolean().default(false),
@@ -28,6 +29,7 @@ const updateBoardSchema = Joi.object({
   }),
   category: Joi.string()
     .valid('프로젝트', '개발', '업무', '학습', '아이디어', '노트', '일정', '일상', '재정', '운동', '여행', '기타'),
+  start_date: Joi.date().iso().allow(null, ''),
   deadline: Joi.date().iso().allow(null, ''),
   bg_theme: Joi.string(),
   is_starred: Joi.boolean(),

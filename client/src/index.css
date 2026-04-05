@@ -8,36 +8,36 @@
   --color-brand-hover:          #243370;
 
   /* ─── 라이트모드 배경 ──────────────────────────────── */
-  --color-bg:                   #f1f3f5;
+  --color-bg:                   #ffffff;
   --color-surface:              #ffffff;
-  --color-surface-2:            #f8f9fa;
-  --color-header-bg:            rgba(255, 255, 255, 0.75);
-  --color-sidebar-bg:           rgba(255, 255, 255, 0.65);
+  --color-surface-2:            #eef0f8;
+  --color-header-bg:            rgba(255, 255, 255, 0.85);
+  --color-sidebar-bg:           rgba(255, 255, 255, 0.85);
 
   /* ─── 라이트모드 텍스트 ────────────────────────────── */
-  --color-text-primary:         #212529;
-  --color-text-secondary:       #495057;
-  --color-text-muted:           #868e96;
+  --color-text-primary:         #1a1d23;
+  --color-text-secondary:       #4a5568;
+  --color-text-muted:           #8a95a3;
 
   /* ─── 라이트모드 보더 ──────────────────────────────── */
-  --color-border:               #dee2e6;
-  --color-border-subtle:        rgba(0, 0, 0, 0.08);
+  --color-border:               #e2e6ea;
+  --color-border-subtle:        rgba(0, 0, 0, 0.06);
 
-  /* ─── 다크모드 배경 ────────────────────────────────── */
-  --color-dark-bg:              #0f0f10;
-  --color-dark-surface:         #1c1c1e;
-  --color-dark-surface-2:       #2c2c2e;
-  --color-dark-header-bg:       rgba(28, 28, 30, 0.8);
-  --color-dark-sidebar-bg:      rgba(0, 0, 0, 0.5);
+  /* ─── 다크모드 배경 (변수 정의용) ─────────────────── */
+  --color-dark-bg:              #13151a;
+  --color-dark-surface:         #1c1f26;
+  --color-dark-surface-2:       #252830;
+  --color-dark-header-bg:       rgba(19, 21, 26, 0.92);
+  --color-dark-sidebar-bg:      rgba(19, 21, 26, 0.92);
 
-  /* ─── 다크모드 텍스트 ──────────────────────────────── */
-  --color-dark-text-primary:    #ffffff;
-  --color-dark-text-secondary:  rgba(255, 255, 255, 0.7);
-  --color-dark-text-muted:      rgba(255, 255, 255, 0.4);
+  /* ─── 다크모드 텍스트 (변수 정의용) ───────────────── */
+  --color-dark-text-primary:    #e8eaf0;
+  --color-dark-text-secondary:  rgba(232, 234, 240, 0.65);
+  --color-dark-text-muted:      rgba(232, 234, 240, 0.35);
 
-  /* ─── 다크모드 보더 ────────────────────────────────── */
-  --color-dark-border:          #3a3a3c;
-  --color-dark-border-subtle:   rgba(255, 255, 255, 0.15);
+  /* ─── 다크모드 보더 (변수 정의용) ─────────────────── */
+  --color-dark-border:          #2e323d;
+  --color-dark-border-subtle:   rgba(255, 255, 255, 0.07);
 
   /* ─── 인증 화면 전용 ───────────────────────────────── */
   --color-auth-input-bg:        rgba(255, 255, 255, 0.1);
@@ -67,6 +67,27 @@
   --animate-slide-down:         slideDown 0.2s ease-out;
 }
 
+/* ==========================================================
+   다크모드 — .dark 클래스 시 기본 변수 덮어쓰기
+   ========================================================== */
+.dark {
+  /* ─── 배경 ─────────────────────────────────────────── */
+  --color-bg:             #13151a;
+  --color-surface:        #1c1f26;
+  --color-surface-2:      #252830;
+  --color-header-bg:      rgba(19, 21, 26, 0.92);
+  --color-sidebar-bg:     rgba(19, 21, 26, 0.92);
+
+  /* ─── 텍스트 ────────────────────────────────────────── */
+  --color-text-primary:   #e8eaf0;
+  --color-text-secondary: rgba(232, 234, 240, 0.65);
+  --color-text-muted:     rgba(232, 234, 240, 0.35);
+
+  /* ─── 보더 ─────────────────────────────────────────── */
+  --color-border:         #2e323d;
+  --color-border-subtle:  rgba(255, 255, 255, 0.07);
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
@@ -82,6 +103,11 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes themeIconSpin {
+  from { transform: rotate(-60deg) scale(0.6); opacity: 0; }
+  to   { transform: rotate(0deg)   scale(1);   opacity: 1; }
+}
+
 /* ─── 전역 기본값 ───────────────────────────────────────── */
 * {
   box-sizing: border-box;
@@ -93,6 +119,23 @@ body {
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
   scrollbar-gutter: stable both-edges;
+  background: var(--color-bg);
+}
+
+/* ─── 스크롤바 커스텀 ───────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
 }
 
 /* ─── 브라우저 기본 비밀번호 아이콘 제거 (Edge) ─────────── */
@@ -104,7 +147,6 @@ input[type="password"]::-ms-reveal {
    인증 화면 공통 스타일 (AuthLayout 하위 모든 페이지)
    ========================================================== */
 
-/* 입력 필드 */
 .auth-input {
   height: clamp(44px, 3.6vw, 52px);
   width: 100%;
@@ -132,7 +174,6 @@ input[type="password"]::-ms-reveal {
   outline: none;
 }
 
-/* 메인 버튼 (로그인 / 시작하기 / 전송 / 변경) */
 .auth-btn {
   height: clamp(48px, 3.9vw, 56px);
   width: 100%;
@@ -155,7 +196,6 @@ input[type="password"]::-ms-reveal {
   cursor: not-allowed;
 }
 
-/* 눈 아이콘 버튼 */
 .eye-btn {
   position: absolute;
   right: 12px;
@@ -174,7 +214,6 @@ input[type="password"]::-ms-reveal {
   color: rgba(255, 255, 255, 0.85);
 }
 
-/* 성별 버튼 */
 .gender-btn {
   height: clamp(44px, 3.6vw, 52px);
   flex: 1;
@@ -192,7 +231,6 @@ input[type="password"]::-ms-reveal {
   border-color: var(--color-brand);
 }
 
-/* 소셜 로그인 버튼 */
 .social-btn {
   width: clamp(40px, 3.3vw, 48px);
   height: clamp(40px, 3.3vw, 48px);
@@ -210,7 +248,6 @@ input[type="password"]::-ms-reveal {
   background: rgba(255, 255, 255, 0.25);
 }
 
-/* 회원가입 입력 스크롤 영역 */
 .input-scroll {
   height: clamp(260px, 34vw, 310px);
   overflow-y: auto;
@@ -233,7 +270,7 @@ input[type="password"]::-ms-reveal {
   border: 1px solid var(--color-border) !important;
   border-radius: 12px !important;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
 }
 .react-datepicker__header {
   background: var(--color-surface) !important;
@@ -257,7 +294,17 @@ input[type="password"]::-ms-reveal {
 .react-datepicker__day:hover {
   background: var(--color-border-subtle) !important;
 }
-.react-datepicker__day--selected {
+.react-datepicker__day--selected,
+.react-datepicker__day--in-range {
+  background: var(--color-brand) !important;
+  color: white !important;
+}
+.react-datepicker__day--in-selecting-range {
+  background: rgba(45, 64, 142, 0.15) !important;
+  color: var(--color-brand) !important;
+}
+.react-datepicker__day--range-start,
+.react-datepicker__day--range-end {
   background: var(--color-brand) !important;
   color: white !important;
 }
@@ -286,7 +333,130 @@ input[type="password"]::-ms-reveal {
   font-size: 15px !important;
   outline: none !important;
   cursor: pointer !important;
+  transition: border-color 0.15s !important;
 }
 .react-datepicker__input-container input:focus {
   border-color: var(--color-brand) !important;
 }
+
+/* ==========================================================
+   FullCalendar 커스텀 스타일
+   ========================================================== */
+
+.fc { font-family: inherit; height: 100%; }
+.fc .fc-toolbar { display: none !important; }
+
+/* ── 전체 그리드 테두리 ── */
+.fc .fc-scrollgrid {
+  border: 1px solid var(--color-border) !important;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+}
+.fc .fc-scrollgrid-section > * { border: none !important; }
+.fc td, .fc th { border-color: var(--color-border) !important; }
+
+/* ── 요일 헤더 ── */
+.fc .fc-col-header { background: var(--color-surface-2) !important; }
+.fc .fc-col-header-cell {
+  padding: 12px 0 10px !important;
+  border-bottom: 1px solid var(--color-border) !important;
+}
+.fc .fc-col-header-cell-cushion {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--color-text-muted) !important;
+}
+.fc .fc-day-sat .fc-col-header-cell-cushion { color: #3b82f6 !important; }
+.fc .fc-day-sun .fc-col-header-cell-cushion { color: #ef4444 !important; }
+.fc .fc-day-today .fc-col-header-cell-cushion {
+  color: var(--color-brand) !important;
+  font-weight: 800 !important;
+}
+
+/* ── 날짜 셀 ── */
+.fc .fc-daygrid-day { background: transparent !important; }
+.fc .fc-daygrid-day:hover { background: transparent !important; }
+.fc .fc-daygrid-day-top {
+  padding: 6px 8px 2px !important;
+  justify-content: flex-start !important;
+}
+
+/* ── 날짜 행 높이 고정 (월별 뷰) ── */
+.fc-dayGridMonth-view .fc-daygrid-body tr {
+  height: 110px !important;
+}
+.fc-dayGridMonth-view .fc-daygrid-day {
+  height: 110px !important;
+  overflow: hidden !important;
+}
+
+/* 날짜 숫자 기본 */
+.fc .fc-daygrid-day-number {
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  color: var(--color-text-secondary) !important;
+  text-decoration: none !important;
+  padding: 0 !important;
+  line-height: 1.4 !important;
+}
+
+/* 오늘 날짜 */
+.fc .fc-day-today { background: rgba(45, 64, 142, 0.03) !important; }
+.fc .fc-day-today .fc-daygrid-day-number {
+  color: var(--color-brand) !important;
+  font-weight: 700 !important;
+  border-bottom: 2px solid var(--color-brand) !important;
+  padding-bottom: 1px !important;
+}
+
+/* 주말 */
+.fc .fc-day-sat .fc-daygrid-day-number { color: #3b82f6 !important; }
+.fc .fc-day-sun .fc-daygrid-day-number { color: #ef4444 !important; }
+.fc .fc-day-today.fc-day-sat .fc-daygrid-day-number,
+.fc .fc-day-today.fc-day-sun .fc-daygrid-day-number {
+  color: var(--color-brand) !important;
+}
+
+/* 다른 달 날짜 */
+.fc .fc-day-other .fc-daygrid-day-number { color: var(--color-border) !important; }
+
+/* ── 이벤트 공통 ── */
+.fc .fc-event {
+  border-radius: 4px !important;
+  border-left-width: 2px !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  padding: 0 !important;
+  margin: 1px 3px !important;
+  cursor: pointer !important;
+  overflow: hidden !important;
+  transition: filter 0.12s, transform 0.12s !important;
+  min-height: 20px !important;
+}
+.fc .fc-event:hover {
+  filter: brightness(0.9) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ── 주별 뷰 이벤트 높이 ── */
+.fc-dayGridWeek-view .fc-event {
+  min-height: 34px !important;
+}
+
+/* ── 더보기 링크 ── */
+.fc .fc-daygrid-more-link {
+  color: var(--color-brand) !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  padding: 0 4px !important;
+}
+
+/* ── 주 뷰 오늘 컬럼 배경 ── */
+.fc .fc-day-today.fc-daygrid-day { background: rgba(45, 64, 142, 0.03) !important; }
+
+/* ── FullCalendar 기본 팝업 숨김 — 커스텀 모달 사용 ── */
+.fc-popover { display: none !important; }

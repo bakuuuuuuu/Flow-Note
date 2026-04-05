@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 const { protect } = require('../middleware/authMiddleware');
-const upload = require('../utils/upload');
+const { uploadImage } = require('../utils/upload');
 const resizeImage = require('../middleware/imageResize');
 const validate = require('../middleware/validate');
 const { registerSchema, loginSchema } = require('../validators/userValidator');
@@ -28,19 +28,28 @@ router.post('/forgot-password', userController.forgotPassword);
 // [PATCH] 비밀번호 변경
 router.patch('/reset-password/:token', userController.resetPassword);
 
-// [GET] 내 프로필 보기 (로그인한 사람만 가능)
+// [GET] 내 프로필 보기
 router.get('/profile', protect, userController.getUserProfile);
 
 // [PATCH] 프로필 이미지 업데이트
 router.patch(
-  '/profile/image', 
-  protect, 
-  upload.single('profile_img'), 
+  '/profile/image',
+  protect,
+  uploadImage.single('profile_img'),
   resizeImage,
   userController.updateProfileImage
 );
 
 // [DELETE] 프로필 이미지 삭제
 router.delete('/profile/image', protect, userController.deleteProfileImage);
+
+// [PATCH] 프로필 수정 (닉네임, 상태메시지)
+router.patch('/profile', protect, userController.updateProfile)
+
+// [PATCH] 비밀번호 변경 (로그인 상태)
+router.patch('/password', protect, userController.updatePassword)
+
+// [DELETE] 회원 탈퇴
+router.delete('/account', protect, userController.deleteAccount)
 
 module.exports = router;

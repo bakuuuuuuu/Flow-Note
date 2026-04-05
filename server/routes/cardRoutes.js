@@ -2,9 +2,8 @@ const express = require('express');
 const router = express.Router();
 const cardController = require('../controllers/cardController');
 const { protect } = require('../middleware/authMiddleware');
-const upload = require('../utils/upload');
-const resizeImage = require('../middleware/imageResize');
-const validate = require('../middleware/validate'); 
+const { uploadFile } = require('../utils/upload');
+const validate = require('../middleware/validate');
 const { cardSchema, updateCardSchema } = require('../validators/cardValidator');
 
 // [POST] 카드 생성
@@ -22,12 +21,11 @@ router.patch('/:cardId/move', protect, validate(updateCardSchema), cardControlle
 // [GET] 카드 상세 조회
 router.get('/:id', protect, cardController.getCardById);
 
-// [POST] 카드 첨부 파일 업로드
+// [POST] 카드 첨부 파일 업로드 — resizeImage 제거
 router.post(
-  '/:id/upload', 
-  protect, 
-  upload.array('attachments', 5), 
-  resizeImage,
+  '/:id/upload',
+  protect,
+  uploadFile.array('attachments', 5),
   cardController.uploadCardAttachments
 );
 

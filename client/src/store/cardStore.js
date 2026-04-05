@@ -83,19 +83,10 @@ const useCardStore = create((set) => ({
   },
 
   // [카드 이동]
-  transferCard: async (cardId, data, listStore) => {
+  transferCard: async (cardId, data) => {
     set({ loading: true, error: null })
     try {
       const { data: movedCard } = await moveCard(cardId, data)
-      listStore.setState((state) => ({
-        lists: state.lists.map((l) => ({
-          ...l,
-          cards: (l.cards || [])
-            .filter((c) => c._id !== cardId)
-            .concat(l._id === movedCard.list_id ? [movedCard] : [])
-            .sort((a, b) => a.pos - b.pos),
-        })),
-      }))
       return movedCard
     } catch (err) {
       set({ error: err.response?.data?.message || '카드 이동 실패' })

@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Star, Pencil, Share2, Filter, ArrowUpDown } from 'lucide-react'
+import { Star, SquarePen, Share2, SlidersHorizontal } from 'lucide-react'
 import useBoardStore from '../store/boardStore'
 import useListStore from '../store/listStore'
 import { getCategoryEmoji } from '../constants/categories'
 import Modal from '../components/common/Modal'
 import KanbanBoard from '../components/board/KanbanBoard'
+import CalendarView from '../components/board/CalendarView'
+import CardDetailModal from '../components/board/CardDetailModal'
+import EditBoardModal from '../components/common/EditBoardModal'
+import ShareModal from '../components/common/ShareModal'
+import FilterModal from '../components/common/FilterModal'
 import toast from 'react-hot-toast'
 
 const BoardPage = () => {
@@ -16,6 +21,12 @@ const BoardPage = () => {
   const [activeTab, setActiveTab] = useState('board')
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [selectedCard, setSelectedCard] = useState(null)
+  const [cardDetailOpen, setCardDetailOpen] = useState(false)
+  const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [filterModalOpen, setFilterModalOpen] = useState(false)
+  const [activeFilter, setActiveFilter] = useState({ labels: [], statuses: [], deadline: null })
 
   useEffect(() => {
     const load = async () => {
@@ -62,26 +73,39 @@ const BoardPage = () => {
     }
   }
 
+  const handleCardClick = (card) => {
+    setSelectedCard(card)
+    setCardDetailOpen(true)
+  }
+
+  const handleApplyFilter = (filter) => {
+    setActiveFilter(filter)
+  }
+
+  const filterCount =
+    activeFilter.labels.length +
+    activeFilter.statuses.length +
+    (activeFilter.deadline ? 1 : 0)
+
   const getDdayText = (deadline) => {
     if (!deadline) return null
     const diff = Math.ceil((new Date(deadline) - new Date()) / (1000 * 60 * 60 * 24))
-    if (diff < 0)  return { label: `D+${Math.abs(diff)}`, color: 'var(--color-text-muted)' }
-    if (diff === 0) return { label: 'D-Day',              color: 'var(--color-status-deadline)' }
-    if (diff <= 3)  return { label: `D-${diff}`,          color: 'var(--color-status-deadline)' }
-    if (diff <= 7)  return { label: `D-${diff}`,          color: 'var(--color-status-doing)' }
-    return              { label: `D-${diff}`,              color: 'var(--color-text-muted)' }
+    if (diff < 0)   return { label: `D+${Math.abs(diff)}`, color: 'var(--color-text-muted)' }
+    if (diff === 0) return { label: 'D-Day',               color: 'var(--color-status-deadline)' }
+    if (diff <= 3)  return { label: `D-${diff}`,           color: 'var(--color-status-deadline)' }
+    if (diff <= 7)  return { label: `D-${diff}`,           color: 'var(--color-status-doing)' }
+    return               { label: `D-${diff}`,             color: 'var(--color-text-muted)' }
   }
 
   if (!currentBoard) return (
-    <div
-      className="flex items-center justify-center h-full"
-      style={{ color: 'var(--color-text-muted)' }}
-    >
+    <div className="flex items-center justify-center h-full" style={{ color: 'var(--color-text-muted)' }}>
       <p>불러오는 중...</p>
     </div>
   )
 
   const dday = getDdayText(currentBoard.deadline)
+  const formatDate = (date) =>
+    new Date(date).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' })
 
   return (
     <div className="flex flex-col" style={{ height: 'calc(100vh - 72px)' }}>
@@ -100,8 +124,14 @@ const BoardPage = () => {
           >
             {currentBoard.title}
           </h1>
-          <button className="text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors">
-            <Pencil size={18} />
+          <button
+            onClick={() => setEditModalOpen(true)}
+            className="transition-colors"
+            style={{ color: 'var(--color-text-muted)' }}
+            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-brand)'}
+            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-muted)'}
+          >
+            <SquarePen size={22} />
           </button>
 
           {/* 보드 삭제 — 오른쪽 끝 */}
@@ -126,7 +156,7 @@ const BoardPage = () => {
           </button>
         </div>
 
-        {/* 즐겨찾기 + 탭 버튼 + 날짜 + Share/Filter/Sort */}
+        {/* 즐겨찾기 + 탭 버튼 + 날짜 + Share/Filter */}
         <div className="flex items-center gap-3">
 
           {/* 즐겨찾기 */}
@@ -165,10 +195,15 @@ const BoardPage = () => {
             ))}
           </div>
 
-          {/* 마감일 & D-day */}
-          {currentBoard.deadline && (
+          {/* 시작일 ~ 마감일 & D-day */}
+          {(currentBoard.start_date || currentBoard.deadline) && (
             <span className="text-[14px]" style={{ color: 'var(--color-text-muted)' }}>
-              {new Date(currentBoard.deadline).toLocaleDateString('ko-KR')}
+              {currentBoard.start_date && currentBoard.deadline
+                ? `${formatDate(currentBoard.start_date)} - ${formatDate(currentBoard.deadline)}`
+                : currentBoard.deadline
+                ? formatDate(currentBoard.deadline)
+                : formatDate(currentBoard.start_date)
+              }
             </span>
           )}
           {dday && (
@@ -177,22 +212,44 @@ const BoardPage = () => {
             </span>
           )}
 
-          {/* Share / Filter / Sort */}
+          {/* Share / Filter */}
           <div className="ml-auto flex items-center gap-4">
-            {[
-              { icon: Share2,      label: 'Share' },
-              { icon: Filter,      label: 'Filter' },
-              { icon: ArrowUpDown, label: 'Sort' },
-            ].map(({ icon: Icon, label }) => (
-              <button
-                key={label}
-                className="flex flex-col items-center justify-center gap-1 h-[36px] text-[11px] transition-colors"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
-                <Icon size={16} />
-                <span>{label}</span>
-              </button>
-            ))}
+
+            {/* Share */}
+            <button
+              onClick={() => setShareModalOpen(true)}
+              className="flex flex-col items-center justify-center gap-1 h-[36px] text-[11px] transition-colors"
+              style={{ color: 'var(--color-text-secondary)' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-text-primary)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-text-secondary)'}
+            >
+              <Share2 size={16} />
+              <span>Share</span>
+            </button>
+
+            {/* Filter */}
+            <button
+              onClick={() => setFilterModalOpen(true)}
+              className="flex flex-col items-center justify-center gap-1 h-[36px] text-[11px] transition-colors"
+              style={{ color: filterCount > 0 ? 'var(--color-brand)' : 'var(--color-text-secondary)' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = filterCount > 0 ? 'var(--color-brand)' : 'var(--color-text-primary)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = filterCount > 0 ? 'var(--color-brand)' : 'var(--color-text-secondary)'}
+            >
+              <div className="relative">
+                <SlidersHorizontal size={16} />
+                {filterCount > 0 && (
+                  <span
+                    className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full text-[9px] font-bold
+                               flex items-center justify-center text-white"
+                    style={{ backgroundColor: 'var(--color-brand)' }}
+                  >
+                    {filterCount}
+                  </span>
+                )}
+              </div>
+              <span>Filter</span>
+            </button>
+
           </div>
         </div>
 
@@ -203,25 +260,51 @@ const BoardPage = () => {
       {/* ── 탭 콘텐츠 ── */}
       <div className="flex-1 min-h-0">
         {activeTab === 'board' && (
-          <KanbanBoard onCardClick={() => {}} />
+          <KanbanBoard boardId={id} onCardClick={handleCardClick} filter={activeFilter} />
         )}
         {activeTab === 'calendar' && (
-          <div
-            className="flex items-center justify-center h-full"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            <p className="text-[14px]">캘린더 영역 (CalendarView)</p>
-          </div>
+          <CalendarView onCardClick={handleCardClick} />
         )}
       </div>
+
+      {/* ── 카드 상세 모달 ── */}
+      <CardDetailModal
+        isOpen={cardDetailOpen}
+        onClose={() => {
+          setCardDetailOpen(false)
+          setSelectedCard(null)
+        }}
+        card={selectedCard}
+        boardTitle={currentBoard?.title}
+      />
+
+      {/* ── 보드 수정 모달 ── */}
+      <EditBoardModal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        board={currentBoard}
+        onSuccess={() => fetchBoardById(id)}
+      />
+
+      {/* ── Share 모달 ── */}
+      <ShareModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        board={currentBoard}
+      />
+
+      {/* ── Filter 모달 ── */}
+      <FilterModal
+        isOpen={filterModalOpen}
+        onClose={() => setFilterModalOpen(false)}
+        onApply={handleApplyFilter}
+        initialFilter={activeFilter}
+      />
 
       {/* ── 보드 삭제 확인 모달 ── */}
       <Modal isOpen={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} className="max-w-[400px]">
         <div className="p-8">
-          <h2
-            className="text-[22px] font-bold mb-3"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
+          <h2 className="text-[22px] font-bold mb-3" style={{ color: 'var(--color-text-primary)' }}>
             보드를 삭제할까요?
           </h2>
           <p className="text-[14px] mb-8" style={{ color: 'var(--color-text-muted)' }}>
@@ -260,16 +343,10 @@ const BoardPage = () => {
                 opacity: deleteLoading ? 0.6 : 1,
               }}
               onMouseEnter={(e) => {
-                if (!deleteLoading) {
-                  e.currentTarget.style.background = '#c92a2a'
-                  e.currentTarget.style.color = 'rgba(255,255,255,0.85)'
-                }
+                if (!deleteLoading) e.currentTarget.style.background = '#c92a2a'
               }}
               onMouseLeave={(e) => {
-                if (!deleteLoading) {
-                  e.currentTarget.style.background = 'var(--color-status-deadline)'
-                  e.currentTarget.style.color = 'white'
-                }
+                if (!deleteLoading) e.currentTarget.style.background = 'var(--color-status-deadline)'
               }}
             >
               {deleteLoading ? '삭제 중...' : '삭제'}
