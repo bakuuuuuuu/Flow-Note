@@ -1,3 +1,4 @@
+// ForgotPasswordPage.jsx
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { forgotPassword } from '../api/authApi'
@@ -15,11 +16,10 @@ const ForgotPasswordPage = () => {
     let v = e.target.value.replace(/\D/g, '')
     if (v.length > 3 && v.length <= 7) v = v.slice(0, 3) + '-' + v.slice(3)
     else if (v.length > 7) v = v.slice(0, 3) + '-' + v.slice(3, 7) + '-' + v.slice(7, 11)
-    setForm((prev) => ({ ...prev, phone: v }))
+    setForm(prev => ({ ...prev, phone: v }))
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  const handleSubmit = async () => {
     setError('')
     setMessage('')
     setLoading(true)
@@ -33,82 +33,97 @@ const ForgotPasswordPage = () => {
     }
   }
 
+  const inputStyle = {
+    width: '100%', height: '46px', borderRadius: '10px',
+    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+    color: '#e8eaf0', fontSize: '14px', padding: '0 14px',
+    outline: 'none', transition: 'border-color 0.15s',
+    boxSizing: 'border-box', fontFamily: 'inherit',
+  }
+
+  const labelStyle = {
+    display: 'block', fontSize: '11px', fontWeight: 600,
+    color: 'rgba(232,234,240,0.4)', letterSpacing: '0.06em',
+    textTransform: 'uppercase', marginBottom: '8px',
+  }
+
+  const onFocus = e => e.target.style.borderColor = 'rgba(79,112,255,0.6)'
+  const onBlur  = e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'
+
   return (
-    <>
-      <div className="flex flex-col w-full items-center">
+    <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
 
-        {/* ── 타이틀 ── */}
-        <h1
-          className="text-white font-bold text-center w-full"
-          style={{
-            fontSize: 'clamp(24px, 2.5vw, 36px)',
-            letterSpacing: '-0.8px',
-            marginBottom: '6px',
-          }}
-        >
-          Forgot Password?
-        </h1>
-        <p
-          className="text-center w-full"
-          style={{
-            fontSize: 'clamp(12px, 0.9vw, 14px)',
-            fontWeight: 300,
-            color: 'rgba(255,255,255,0.7)',
-            marginBottom: 'clamp(20px, 2.5vw, 32px)',
-          }}
-        >
-          가입하신 이메일 주소를 입력하시면 비밀번호 재설정 링크를 보내드립니다.
+      {/* 타이틀 */}
+      <div style={{ marginBottom: '32px' }}>
+        <h2 style={{ fontSize: 'clamp(22px, 2vw, 28px)', fontWeight: 800, color: '#e8eaf0', letterSpacing: '-0.04em', marginBottom: '8px', lineHeight: 1.2 }}>
+          비밀번호를 잊으셨나요?
+        </h2>
+        <p style={{ fontSize: '14px', color: 'rgba(232,234,240,0.4)', lineHeight: 1.6 }}>
+          가입 정보를 입력하시면 재설정 링크를 보내드려요.
         </p>
-
-        {/* ── 입력칸 묶음 ── */}
-        <div className="flex flex-col w-full" style={{ gap: 'clamp(10px, 1.1vw, 16px)' }}>
-          <input
-            name="email" type="email" placeholder="이메일 주소"
-            value={form.email} onChange={handleChange}
-            className="auth-input"
-          />
-          <input
-            name="name" type="text" placeholder="이름"
-            value={form.name} onChange={handleChange}
-            className="auth-input"
-          />
-          <input
-            name="phone" type="text" placeholder="전화번호 (010-0000-0000)"
-            value={form.phone} onChange={handlePhone} maxLength={13}
-            className="auth-input"
-          />
-        </div>
-
-        {/* 메시지 / 에러 */}
-        {message && <p className="text-green-400 text-sm w-full" style={{ marginTop: '8px' }}>{message}</p>}
-        {error   && <p className="text-red-400   text-sm w-full" style={{ marginTop: '8px' }}>{error}</p>}
-
-        {/* ── 전송 버튼 ── */}
-        <button
-          type="button" onClick={handleSubmit} disabled={loading}
-          className="auth-btn"
-          style={{ marginTop: 'clamp(20px, 2.2vw, 32px)' }}
-        >
-          {loading ? '발송 중...' : '비밀번호 재설정 메일 보내기'}
-        </button>
-
-        {/* ── 로그인으로 돌아가기 ── */}
-        <p className="text-center" style={{
-          fontSize: 'clamp(12px, 1vw, 14px)',
-          color: 'var(--color-dark-text-secondary)',
-          marginTop: 'clamp(16px, 1.8vw, 24px)',
-        }}>
-          <span
-            className="underline cursor-pointer font-semibold hover:opacity-70 transition-opacity"
-            style={{ color: 'var(--color-auth-link)' }}
-            onClick={() => navigate('/login')}
-          >
-            로그인 화면으로 돌아가기
-          </span>
-        </p>
-
       </div>
-    </>
+
+      {/* 입력 필드 */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '24px' }}>
+        <div>
+          <label style={labelStyle}>이메일</label>
+          <input name="email" type="email" placeholder="name@example.com" value={form.email} onChange={handleChange} style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
+        </div>
+        <div>
+          <label style={labelStyle}>이름</label>
+          <input name="name" type="text" placeholder="홍길동" value={form.name} onChange={handleChange} style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
+        </div>
+        <div>
+          <label style={labelStyle}>전화번호</label>
+          <input name="phone" type="text" placeholder="010-0000-0000" value={form.phone} onChange={handlePhone} maxLength={13} style={inputStyle} onFocus={onFocus} onBlur={onBlur} />
+        </div>
+      </div>
+
+      {/* 성공 메시지 */}
+      {message && (
+        <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.25)', marginBottom: '16px' }}>
+          <p style={{ fontSize: '13px', color: '#34d399', margin: 0 }}>{message}</p>
+        </div>
+      )}
+
+      {/* 에러 */}
+      {error && (
+        <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', marginBottom: '16px' }}>
+          <p style={{ fontSize: '13px', color: '#f87171', margin: 0 }}>{error}</p>
+        </div>
+      )}
+
+      {/* 전송 버튼 */}
+      <button
+        type="button" onClick={handleSubmit} disabled={loading || !!message}
+        style={{
+          width: '100%', height: '46px', borderRadius: '10px',
+          background: loading || message ? 'rgba(45,64,142,0.5)' : '#2d408e',
+          border: '1px solid rgba(79,112,255,0.35)',
+          color: 'white', fontSize: '14px', fontWeight: 700,
+          cursor: loading || message ? 'not-allowed' : 'pointer',
+          transition: 'all 0.15s', fontFamily: 'inherit',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 4px 20px rgba(45,64,142,0.3)',
+        }}
+        onMouseEnter={e => { if (!loading && !message) { e.currentTarget.style.background = '#243370'; e.currentTarget.style.boxShadow = '0 6px 28px rgba(45,64,142,0.5)' } }}
+        onMouseLeave={e => { if (!loading && !message) { e.currentTarget.style.background = '#2d408e'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(45,64,142,0.3)' } }}
+      >
+        {loading ? '발송 중...' : message ? '발송 완료 ✓' : '재설정 메일 보내기'}
+      </button>
+
+      {/* 로그인으로 */}
+      <p style={{ textAlign: 'center', fontSize: '13px', color: 'rgba(232,234,240,0.35)', marginTop: '24px' }}>
+        <span
+          onClick={() => navigate('/login')}
+          style={{ color: '#7b9cff', fontWeight: 600, cursor: 'pointer', transition: 'color 0.15s' }}
+          onMouseEnter={e => e.currentTarget.style.color = '#a5b8ff'}
+          onMouseLeave={e => e.currentTarget.style.color = '#7b9cff'}
+        >
+          ← 로그인으로 돌아가기
+        </span>
+      </p>
+    </div>
   )
 }
 

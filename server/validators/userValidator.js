@@ -74,7 +74,12 @@ const registerSchema = Joi.object({
       'any.required': '전화번호는 필수 항목입니다.'
     }),
 
-  status_message: Joi.string().max(50).allow('', null)
+  status_message: Joi.string().max(50).allow('', null),
+
+  agreed: Joi.boolean().valid(true).required().messages({
+    'any.only': '이용약관에 동의해주세요.',
+    'any.required': '이용약관 동의는 필수입니다.'
+  }),
 });
 
 // 로그인

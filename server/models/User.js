@@ -58,6 +58,11 @@ const userSchema = new mongoose.Schema({
       default: true
     }
   },
+
+  agreed_at: {
+    type: Date,
+    default: null
+  },
   
   resetPasswordToken: String,
   resetPasswordExpires: Date

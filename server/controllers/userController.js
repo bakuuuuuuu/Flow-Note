@@ -34,7 +34,7 @@ exports.registerUser = async (req, res) => {
       return res.status(400).json({ message: error.details[0].message });
     }
 
-    const { email, password, nickname, name, gender, birthdate, phone } = req.body;
+    const { email, password, nickname, name, gender, birthdate, phone, agreed } = req.body;
 
     // 이메일 중복 확인
     const userExists = await User.findOne({ email });
@@ -61,6 +61,7 @@ exports.registerUser = async (req, res) => {
       gender,
       birthdate,
       phone,
+      agreed_at: agreed ? new Date() : null,
     });
 
     // 회원가입 환영 알림 추가
