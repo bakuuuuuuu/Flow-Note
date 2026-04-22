@@ -14,6 +14,8 @@ const cardRoutes = require('./routes/cardRoutes');
 const activityRoutes = require('./routes/activityRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const searchRoutes = require('./routes/searchRoutes');
+const passport = require('./config/passport')
+const authRoutes = require('./routes/authRoutes')
 
 const app = express();
 
@@ -25,6 +27,7 @@ app.use(cors({
 
 app.use(cookieParser());
 app.use(express.json());
+app.use(passport.initialize())
 
 // 정적 파일 제공 설정
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -37,6 +40,7 @@ app.use('/api/cards', cardRoutes);
 app.use('/api/activities', activityRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/auth', authRoutes)
 
 // DB 연결
 mongoose.connect(process.env.MONGO_URI)

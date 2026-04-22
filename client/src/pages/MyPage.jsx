@@ -493,6 +493,7 @@ const MyPage = () => {
                 </div>
               </div>
 
+            {profile?.provider === 'local' && (
               <div>
                 <p className="text-[12px] font-semibold uppercase tracking-wide mb-4 flex items-center gap-1.5" style={{ color: 'var(--color-text-muted)' }}>
                   <Lock size={12} /> 비밀번호 변경
@@ -543,6 +544,7 @@ const MyPage = () => {
                   </button>
                 </div>
               </div>
+              )}
             </>
           )}
 
@@ -688,23 +690,32 @@ const MyPage = () => {
       </div>
 
       {/* ── 회원 탈퇴 확인 모달 ── */}
-      {deleteModalOpen && (
+     {deleteModalOpen && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        onClick={() => setDeleteModalOpen(false)}
+      >
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          onClick={() => setDeleteModalOpen(false)}
+          className="relative rounded-2xl shadow-xl w-full max-w-[400px] mx-4 p-8"
+          style={{ background: 'var(--color-surface)' }}
+          onClick={(e) => e.stopPropagation()}
         >
-          <div
-            className="relative rounded-2xl shadow-xl w-full max-w-[400px] mx-4 p-8"
-            style={{ background: 'var(--color-surface)' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-[20px] font-bold mb-2" style={{ color: 'var(--color-text-primary)' }}>
-              정말 탈퇴할까요?
-            </h2>
-            <p className="text-[13px] mb-6" style={{ color: 'var(--color-text-muted)' }}>
-              탈퇴하면 모든 보드와 카드가 삭제돼요. 이 작업은 되돌릴 수 없어요.
-              확인을 위해 비밀번호를 입력해주세요.
-            </p>
+          {/* 경고 아이콘 */}
+          <div className="flex items-center justify-center w-12 h-12 rounded-full mb-4 mx-auto"
+            style={{ background: 'rgba(239,68,68,0.1)' }}>
+            <Trash2 size={22} style={{ color: 'var(--color-status-deadline)' }} />
+          </div>
+
+          <h2 className="text-[20px] font-bold mb-2 text-center" style={{ color: 'var(--color-text-primary)' }}>
+            정말 탈퇴할까요?
+          </h2>
+          <p className="text-[13px] mb-6 text-center leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
+            탈퇴하면 모든 보드와 카드가 삭제돼요.<br />
+            이 작업은 <span style={{ color: 'var(--color-status-deadline)', fontWeight: 600 }}>되돌릴 수 없어요.</span>
+            {profile?.provider === 'local' && <><br />확인을 위해 비밀번호를 입력해주세요.</>}
+          </p>
+
+          {profile?.provider === 'local' && (
             <input
               type="password"
               placeholder="비밀번호 입력"
@@ -715,26 +726,46 @@ const MyPage = () => {
               onFocus={(e) => e.target.style.borderColor = 'var(--color-status-deadline)'}
               onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
             />
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => { setDeleteModalOpen(false); setDeleteConfirmPw('') }}
-                className="h-10 px-5 rounded-lg text-[13px] font-medium"
-                style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)' }}
-              >
-                취소
-              </button>
-              <button
-                onClick={handleDeleteAccount}
-                disabled={!deleteConfirmPw}
-                className="h-10 px-5 rounded-lg text-[13px] font-semibold text-white"
-                style={{ background: 'var(--color-status-deadline)', opacity: !deleteConfirmPw ? 0.5 : 1 }}
-              >
-                탈퇴하기
-              </button>
-            </div>
+          )}
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => { setDeleteModalOpen(false); setDeleteConfirmPw('') }}
+              className="flex-1 h-11 rounded-lg text-[13px] font-medium transition-all"
+              style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text-secondary)' }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-border)'; e.currentTarget.style.color = 'var(--color-text-primary)' }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--color-surface-2)'; e.currentTarget.style.color = 'var(--color-text-secondary)' }}
+            >
+              취소
+            </button>
+            <button
+              onClick={handleDeleteAccount}
+              disabled={profile?.provider === 'local' && !deleteConfirmPw}
+              className="flex-1 h-11 rounded-lg text-[13px] font-semibold text-white transition-all"
+              style={{
+                background: 'var(--color-status-deadline)',
+                opacity: (profile?.provider === 'local' && !deleteConfirmPw) ? 0.4 : 1,
+                cursor: (profile?.provider === 'local' && !deleteConfirmPw) ? 'not-allowed' : 'pointer',
+              }}
+              onMouseEnter={(e) => {
+                if (!(profile?.provider === 'local' && !deleteConfirmPw)) {
+                  e.currentTarget.style.background = '#dc2626'
+                  e.currentTarget.style.transform = 'translateY(-1px)'
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(239,68,68,0.4)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'var(--color-status-deadline)'
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.boxShadow = 'none'
+              }}
+            >
+              탈퇴하기
+            </button>
           </div>
         </div>
-      )}
+      </div>
+    )}
 
     </div>
   )

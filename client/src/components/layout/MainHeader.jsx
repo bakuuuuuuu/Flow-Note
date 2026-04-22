@@ -402,12 +402,19 @@ const MainHeader = ({ onToggleSidebar, hideToggle = false }) => {
           onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
         >
           <div
-            className="w-[26px] h-[26px] rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0 overflow-hidden"
+            className="w-[26px] h-[26px] rounded-full flex-shrink-0 overflow-hidden"
             style={{ background: 'var(--color-brand)', border: '1.5px solid var(--color-border)' }}
           >
             {user?.profile_img && user.profile_img !== 'default_profile.png'
               ? <img src={`http://localhost:5000${user.profile_img}`} alt="프로필" className="w-full h-full object-cover" />
-              : user?.nickname?.[0] ?? 'U'
+              : <div style={{
+                  width: '100%', height: '100%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: 'white', fontSize: '11px', fontWeight: 700,
+                  lineHeight: 1,
+                }}>
+                  {user?.nickname?.[0]?.toUpperCase() ?? 'U'}
+                </div>
             }
           </div>
           <span className="text-[13px] font-medium" style={{ color: 'var(--color-text-primary)' }}>

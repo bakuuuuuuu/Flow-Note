@@ -6,6 +6,12 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const Board = require('../models/Board')
+const Card = require('../models/Card')
+const List = require('../models/List')
+const Notification = require('../models/Notification')
+const Activity = require('../models/Activity')
+const SearchHistory = require('../models/SearchHistory')
 const { registerSchema, loginSchema, resetPasswordSchema } = require('../validators/userValidator');
 
 // [닉네임 중복 확인]
@@ -289,6 +295,8 @@ exports.getUserProfile = async (req, res) => {
         name: user.name,
         profile_img: user.profile_img || null, // 이미지가 없으면 null 반환
         status_message: user.status_message || "",
+        is_profile_complete: user.is_profile_complete,
+        provider: user.provider,
       });
     } else {
       res.status(404).json({ message: '유저를 찾을 수 없습니다.' });
@@ -429,15 +437,77 @@ exports.deleteAccount = async (req, res) => {
     const { password } = req.body
     const user = await User.findById(req.user._id)
 
-    const isMatch = await bcrypt.compare(password, user.password)
-    if (!isMatch) {
-      return res.status(400).json({ message: '비밀번호가 일치하지 않습니다.' })
+    if (!user) {
+      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' })
     }
 
-    await User.findByIdAndDelete(req.user._id)
+    // 소셜 로그인 유저는 비밀번호 검증 생략
+    if (user.provider === 'local') {
+      if (!password) {
+        return res.status(400).json({ message: '비밀번호를 입력해주세요.' })
+      }
+      const isMatch = await bcrypt.compare(password, user.password)
+      if (!isMatch) {
+        return res.status(400).json({ message: '비밀번호가 일치하지 않습니다.' })
+      }
+    }
+
+    // 연관 데이터 삭제
+    const userBoards = await Board.find({ owner_id: req.user._id })
+    const boardIds = userBoards.map(b => b._id)
+
+    await Activity.deleteMany({ board_id: { $in: boardIds } })  // 활동 기록
+    await Card.deleteMany({ board_id: { $in: boardIds } })       // 카드
+    await List.deleteMany({ board_id: { $in: boardIds } })       // 리스트
+    await Board.deleteMany({ owner_id: req.user._id })           // 보드
+    await Notification.deleteMany({ user_id: req.user._id })     // 알림
+    await SearchHistory.deleteMany({ userId: req.user._id })     // 검색기록
+    await User.findByIdAndDelete(req.user._id)                   // 유저
 
     res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'Lax' })
     res.status(200).json({ message: '회원 탈퇴가 완료되었습니다.' })
+  } catch (error) {
+    res.status(500).json({ message: '서버 에러 발생', error: error.message })
+  }
+}
+
+// [소셜 로그인 추가 정보 입력]
+exports.socialSetup = async (req, res) => {
+  try {
+    const { nickname, gender, birthdate, phone } = req.body
+
+    // 닉네임 중복 확인
+    const exists = await User.findOne({ nickname, _id: { $ne: req.user._id } })
+    if (exists) {
+      return res.status(409).json({ message: '이미 사용 중인 닉네임입니다.' })
+    }
+
+    const updated = await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        $set: {
+          nickname,
+          gender,
+          birthdate,
+          phone,
+          is_profile_complete: true,
+        }
+      },
+      { new: true }
+    ).select('-password')
+
+    res.status(200).json({
+      message: '프로필 설정이 완료되었습니다.',
+      user: {
+        _id: updated._id,
+        email: updated.email,
+        nickname: updated.nickname,
+        name: updated.name,
+        profile_img: updated.profile_img,
+        status_message: updated.status_message,
+        is_profile_complete: updated.is_profile_complete,
+      }
+    })
   } catch (error) {
     res.status(500).json({ message: '서버 에러 발생', error: error.message })
   }
