@@ -13,7 +13,7 @@ const SocialCallbackPage = () => {
     const error = searchParams.get('error')
 
     if (error) {
-      navigate('/login?error=' + error)
+      navigate('/login?error=' + error, { replace: true })
       return
     }
 
@@ -23,12 +23,12 @@ const SocialCallbackPage = () => {
         setUser(data)
         // 추가 정보 미입력 신규 소셜 유저면 설정 페이지로
         if (!data.is_profile_complete) {
-          navigate('/social-setup')
+          navigate('/social-setup', { replace: true })
         } else {
-          navigate('/home')
+          navigate('/home', { replace: true })
         }
       }).catch(() => {
-        navigate('/login')
+        navigate('/login', { replace: true })
       })
     }
   }, [])
