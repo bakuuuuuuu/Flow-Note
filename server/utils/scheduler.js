@@ -10,8 +10,12 @@ cron.schedule('0 * * * *', async () => {
     const now = new Date();
     const tomorrow = new Date(now.getTime() + (24 * 60 * 60 * 1000));
 
+    // 한국 시간 기준 오늘 00:00부터 내일까지
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
+
     const urgentCards = await Card.find({
-      due_date: { $gte: now, $lte: tomorrow },
+      due_date: { $gte: startOfToday, $lte: tomorrow },
       status: { $ne: '완료' },
       is_notified: false
     });
