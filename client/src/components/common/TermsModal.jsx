@@ -93,8 +93,8 @@ const TERMS = {
   }
 }
 
-const TermsModal = ({ onClose }) => {
-  const [activeTab, setActiveTab] = useState('service')
+const TermsModal = ({ onClose, initialTab = 'service' }) => {
+  const [activeTab, setActiveTab] = useState(initialTab)
   const current = TERMS[activeTab]
 
   return (

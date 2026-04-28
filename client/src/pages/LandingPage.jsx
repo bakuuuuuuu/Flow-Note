@@ -1,10 +1,21 @@
 import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import TermsModal from '../components/common/TermsModal'
 
 const LandingPage = () => {
   const navigate = useNavigate()
+  const [termsModal, setTermsModal] = useState(null)
 
   return (
     <div style={{ minHeight: '100vh', background: '#0d0f14', color: '#e8eaf0', fontFamily: 'Pretendard, Noto Sans KR, sans-serif', overflowX: 'hidden' }}>
+
+      {/* 약관 모달 */}
+      {termsModal && (
+        <TermsModal
+          initialTab={termsModal}
+          onClose={() => setTermsModal(null)}
+        />
+      )}
 
       {/* ── 헤더 ── */}
       <header style={{
@@ -205,11 +216,8 @@ const LandingPage = () => {
         border: '1px solid rgba(79,112,255,0.25)',
         boxShadow: '0 0 0 1px rgba(79,112,255,0.08), inset 0 1px 0 rgba(255,255,255,0.05)',
       }}>
-        {/* 좌상단 글로우 */}
         <div style={{ position: 'absolute', top: '-60px', left: '-60px', width: '350px', height: '350px', borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(45,64,142,0.4) 0%, transparent 65%)', pointerEvents: 'none' }} />
-        {/* 우하단 글로우 */}
         <div style={{ position: 'absolute', bottom: '-60px', right: '-40px', width: '280px', height: '280px', borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(99,102,241,0.2) 0%, transparent 65%)', pointerEvents: 'none' }} />
-        {/* 상단 라인 글로우 */}
         <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '55%', height: '1px', background: 'linear-gradient(90deg, transparent, rgba(79,112,255,0.7), transparent)', pointerEvents: 'none' }} />
 
         <div style={{ position: 'relative', zIndex: 1 }}>
@@ -248,15 +256,17 @@ const LandingPage = () => {
       {/* ── 푸터 ── */}
       <footer style={{ borderTop: '1px solid rgba(255,255,255,0.06)', padding: '40px 40px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', marginLeft: '-2px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
             <img src="/logo.png" alt="" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
             <span style={{ fontWeight: 700, fontSize: '14px', color: '#e8eaf0' }}>Flow-Note</span>
           </div>
-          <p style={{ fontSize: '12px', color: 'rgba(232,234,240,0.25)', margin: 0 }}>© 2026 Flow-Note. All rights reserved.</p>
+          <p style={{ fontSize: '12px', color: 'rgba(232,234,240,0.25)', margin: 0, paddingLeft: '28px' }}>© 2026 Flow-Note. All rights reserved.</p>
         </div>
         <div style={{ display: 'flex', gap: '24px' }}>
           {['이용약관', '개인정보처리방침'].map(t => (
-            <span key={t} style={{ fontSize: '12px', color: 'rgba(232,234,240,0.3)', cursor: 'pointer', transition: 'color 0.15s' }}
+            <span key={t}
+              onClick={() => setTermsModal(t === '이용약관' ? 'service' : 'privacy')}
+              style={{ fontSize: '12px', color: 'rgba(232,234,240,0.3)', cursor: 'pointer', transition: 'color 0.15s' }}
               onMouseEnter={e => e.currentTarget.style.color = 'rgba(232,234,240,0.7)'}
               onMouseLeave={e => e.currentTarget.style.color = 'rgba(232,234,240,0.3)'}
             >{t}</span>
