@@ -1,5 +1,7 @@
 {
-  "dependencies": {
-    "multer": "^2.1.0"
+  "name": "flow-note",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node server/server.js"
   }
 }
