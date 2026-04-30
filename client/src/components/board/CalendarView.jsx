@@ -330,16 +330,16 @@ const CalendarView = ({ onCardClick }) => {
                     <div className="flex items-center gap-1 flex-shrink-0 ml-2">
                       
                       {card.priority && (
-  <span
-    className="text-[10px] font-bold px-[6px] py-[2px] rounded-full"
-    style={{
-      color: PRIORITY_CONFIG[card.priority]?.color ?? '#8a95a3',
-      background: PRIORITY_CONFIG[card.priority]?.bg ?? 'rgba(138,149,163,0.1)',
-    }}
-  >
-    {card.priority}
-  </span>
-)}
+                        <span
+                          className="text-[10px] font-bold px-[6px] py-[2px] rounded-full"
+                          style={{
+                            color: PRIORITY_CONFIG[card.priority]?.color ?? '#8a95a3',
+                            background: PRIORITY_CONFIG[card.priority]?.bg ?? 'rgba(138,149,163,0.1)',
+                          }}
+                        >
+                          {card.priority}
+                        </span>
+                      )}
 
                       {/* 상태 배지 */}
                       <span className="text-[10px] font-medium" style={{ color: cfg.color }}>

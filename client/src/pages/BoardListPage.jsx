@@ -4,7 +4,7 @@ import { Star, AlertCircle, LayoutGrid, Plus, Calendar, Layers, Clock, TrendingU
 import useAuthStore from '../store/authStore'
 import useBoardStore from '../store/boardStore'
 import { getCategoryEmoji } from '../constants/categories'
-import NewBoardModal from '../components/common/NewBoardModal'
+import NewBoardModal from "../components/board/NewBoardModal";
 
 const PAGE_CONFIG = {
   all: {

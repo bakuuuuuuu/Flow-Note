@@ -11,7 +11,8 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true
+    required: false,
+    default: null
   },
 
   // 기본 인적 사항
@@ -31,11 +32,13 @@ const userSchema = new mongoose.Schema({
   },
   birthdate: {
     type: Date,
-    required: true
+    required: false,
+    default: null
   },
   phone: {
     type: String,
-    required: true
+    required: false,
+    default: null
   },
 
   // 프로필 및 개인 설정
@@ -58,7 +61,26 @@ const userSchema = new mongoose.Schema({
       default: true
     }
   },
+
+  agreed_at: {
+    type: Date,
+    default: null
+  },
   
+  provider: {
+    type: String,
+    enum: ['local', 'google', 'kakao', 'naver'],
+    default: 'local'
+  },
+  social_id: {
+    type: String,
+    default: null
+  },
+  is_profile_complete: {
+    type: Boolean,
+    default: true
+  },
+
   resetPasswordToken: String,
   resetPasswordExpires: Date
 }, {

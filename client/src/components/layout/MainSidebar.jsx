@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Home, Star, AlertCircle, Settings, BookOpen, Plus, ChevronRight } from 'lucide-react'
 import useBoardStore from '../../store/boardStore'
-import NewBoardModal from '../common/NewBoardModal'
+import NewBoardModal from "../board/NewBoardModal";
 import { getCategoryEmoji } from '../../constants/categories'
 
 const SIDEBAR_BOARD_LIMIT = 10

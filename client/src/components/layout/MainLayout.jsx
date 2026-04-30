@@ -1,7 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom'
-import MainHeader from '../components/layout/MainHeader'
-import MainSidebar from '../components/layout/MainSidebar'
-import useSidebarStore from '../store/sidebarStore'
+import MainHeader from './MainHeader'
+import MainSidebar from './MainSidebar'
+import useSidebarStore from '../../store/sidebarStore'
 
 const MainLayout = () => {
   const { isOpen, toggle } = useSidebarStore()

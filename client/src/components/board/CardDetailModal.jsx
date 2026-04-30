@@ -8,36 +8,7 @@ import useCardStore from '../../store/cardStore'
 import useListStore from '../../store/listStore'
 import toast from 'react-hot-toast'
 import { uploadCardAttachments, deleteCardAttachment } from '../../api/cardApi'
-
-const LABEL_OPTIONS = [
-  { color: '#ef4444', text: 'Design' },
-  { color: '#3b82f6', text: 'Dev' },
-  { color: '#10b981', text: 'Marketing' },
-  { color: '#f59e0b', text: 'Planning' },
-  { color: '#8b5cf6', text: 'QA' },
-  { color: '#f97316', text: 'Backend' },
-  { color: '#06b6d4', text: 'Frontend' },
-  { color: '#ec4899', text: 'Design System' },
-  { color: '#64748b', text: 'Docs' },
-  { color: '#84cc16', text: 'Infra' },
-]
-
-const STATUS_OPTIONS = [
-  { value: '대기',   label: '할 일',   color: '#94a3b8' },
-  { value: '진행중', label: '진행 중', color: '#f59e0b' },
-  { value: '완료',   label: '완료',    color: '#10b981' },
-  { value: '보류',   label: '보류',    color: '#ef4444' },
-]
-
-const PRIORITY_OPTIONS = [
-  { value: '긴급', color: '#ef4444' },
-  { value: '높음', color: '#f97316' },
-  { value: '보통', color: '#3b82f6' },
-  { value: '낮음', color: '#94a3b8' },
-]
-
-const TITLE_MAX = 100
-const CONTENT_MAX = 2000
+import { LABEL_OPTIONS, STATUS_OPTIONS, PRIORITY_OPTIONS, TITLE_MAX, CONTENT_MAX } from '../../utils/cardConstants'
 
 const getDdayText = (due_date) => {
   if (!due_date) return null
@@ -159,7 +130,6 @@ const CardDetailModal = ({ isOpen, onClose, card, boardTitle }) => {
       toast.success('카드가 수정됐어요 ✅')
       handleClose()
     } catch (err) {
-      console.error('수정 에러:', err.response?.data)
       toast.error('카드 수정에 실패했어요.')
       setError('카드 수정에 실패했어요. 다시 시도해주세요.')
     } finally {
@@ -469,7 +439,7 @@ const CardDetailModal = ({ isOpen, onClose, card, boardTitle }) => {
                   >
                     <Paperclip size={14} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
                     <a
-                      href={`http://localhost:5000${file.fileUrl}`}
+                      href={`${import.meta.env.VITE_API_URL}${file.fileUrl}`}
                       download={file.fileName}
                       className="flex-1 text-[13px] truncate transition-colors"
                       style={{ color: 'var(--color-brand)' }}

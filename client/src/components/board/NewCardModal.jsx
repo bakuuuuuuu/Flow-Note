@@ -7,36 +7,7 @@ import Modal from '../common/Modal'
 import useCardStore from '../../store/cardStore'
 import useListStore from '../../store/listStore'
 import toast from 'react-hot-toast'
-
-const LABEL_OPTIONS = [
-  { color: '#ef4444', text: 'Design' },
-  { color: '#3b82f6', text: 'Dev' },
-  { color: '#10b981', text: 'Marketing' },
-  { color: '#f59e0b', text: 'Planning' },
-  { color: '#8b5cf6', text: 'QA' },
-  { color: '#f97316', text: 'Backend' },
-  { color: '#06b6d4', text: 'Frontend' },
-  { color: '#ec4899', text: 'Design System' },
-  { color: '#64748b', text: 'Docs' },
-  { color: '#84cc16', text: 'Infra' },
-]
-
-const STATUS_OPTIONS = [
-  { value: '대기',   label: '할 일',   color: '#94a3b8' },
-  { value: '진행중', label: '진행 중', color: '#f59e0b' },
-  { value: '완료',   label: '완료',    color: '#10b981' },
-  { value: '보류',   label: '보류',    color: '#ef4444' },
-]
-
-const PRIORITY_OPTIONS = [
-  { value: '긴급', color: '#ef4444' },
-  { value: '높음', color: '#f97316' },
-  { value: '보통', color: '#3b82f6' },
-  { value: '낮음', color: '#94a3b8' },
-]
-
-const TITLE_MAX = 100
-const CONTENT_MAX = 2000
+import { LABEL_OPTIONS, STATUS_OPTIONS, PRIORITY_OPTIONS, TITLE_MAX, CONTENT_MAX } from '../../utils/cardConstants'
 
 const NewCardModal = ({ isOpen, onClose, listId, boardId, boardTitle, onSuccess }) => {
   const { addCard } = useCardStore()
@@ -101,11 +72,6 @@ const NewCardModal = ({ isOpen, onClose, listId, boardId, boardTitle, onSuccess 
     return
   }
 
-  // ← 임시 디버깅 로그 추가
-  console.log('전송 데이터:', {
-    start_date: form.start_date,
-    due_date: form.due_date,
-  })
     setLoading(true)
     try {
       const newCard = await addCard({

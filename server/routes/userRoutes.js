@@ -52,4 +52,7 @@ router.patch('/password', protect, userController.updatePassword)
 // [DELETE] 회원 탈퇴
 router.delete('/account', protect, userController.deleteAccount)
 
+// [PATCH] 소셜 회원가입 추가 정보 입력
+router.patch('/social-setup', protect, userController.socialSetup)
+
 module.exports = router;

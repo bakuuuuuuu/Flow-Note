@@ -165,10 +165,17 @@ input[type="password"]::-ms-reveal {
 .auth-input::placeholder {
   color: var(--color-dark-text-muted);
 }
-.auth-input:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0px 1000px rgba(0, 0, 0, 0.57) inset;
-  -webkit-text-fill-color: white;
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0px 1000px #1a1d2e inset !important;
+  -webkit-text-fill-color: #e8eaf0 !important;
+  caret-color: #e8eaf0;
+  transition: background-color 9999s ease-in-out 0s;
 }
+
 .auth-input:focus {
   border-color: rgba(255, 255, 255, 0.8);
   outline: none;

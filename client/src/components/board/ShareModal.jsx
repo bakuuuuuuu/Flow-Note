@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link2, Check, Globe, Lock } from 'lucide-react'
-import Modal from './Modal'
+import Modal from '../common/Modal'
 import useAuthStore from '../../store/authStore'
 
 const ShareModal = ({ isOpen, onClose, board }) => {
@@ -53,7 +53,7 @@ const ShareModal = ({ isOpen, onClose, board }) => {
             style={{ background: 'var(--color-brand)' }}
           >
             {user?.profile_img && user.profile_img !== 'default_profile.png'
-              ? <img src={`http://localhost:5000${user.profile_img}`} alt="프로필" className="w-full h-full object-cover" />
+              ? <img src={`${import.meta.env.VITE_API_URL}${user.profile_img}`} alt="프로필" className="w-full h-full object-cover" />
               : displayInitial
             }
           </div>

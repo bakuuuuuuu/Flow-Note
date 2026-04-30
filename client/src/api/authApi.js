@@ -39,3 +39,6 @@ export const updatePassword = (data) => api.patch('/users/password', data)
 
 // [회원 탈퇴]
 export const deleteAccount = (data) => api.delete('/users/account', { data })
+
+// [소셜 로그인 추가 정보 입력]
+export const socialSetup = (data) => api.patch('/users/social-setup', data)

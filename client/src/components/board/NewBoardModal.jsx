@@ -3,7 +3,7 @@ import { ChevronDown, Plus, X } from 'lucide-react'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import { ko } from 'date-fns/locale'
-import Modal from './Modal'
+import Modal from '../common/Modal'
 import useBoardStore from '../../store/boardStore'
 import { CATEGORIES } from '../../constants/categories'
 

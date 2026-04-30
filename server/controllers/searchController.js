@@ -6,14 +6,23 @@ const Card = require('../models/Card');
 exports.saveSearchKeyword = async (req, res) => {
   try {
     const { keyword } = req.body;
-    
-    // 동일한 키워드가 이미 있다면 삭제하고 새로 저장
+
     await SearchHistory.deleteOne({ userId: req.user._id, keyword });
 
     const newHistory = await SearchHistory.create({
       userId: req.user._id,
       keyword
     });
+
+    // 5개 초과 시 오래된 것 자동 삭제
+    const allHistory = await SearchHistory.find({ userId: req.user._id })
+      .sort({ createdAt: -1 })
+    
+    if (allHistory.length > 5) {
+      const idsToDelete = allHistory.slice(5).map(h => h._id)
+      await SearchHistory.deleteMany({ _id: { $in: idsToDelete } })
+    }
+
     res.status(201).json(newHistory);
   } catch (error) {
     res.status(500).json({ message: '검색 기록 저장 실패', error: error.message });

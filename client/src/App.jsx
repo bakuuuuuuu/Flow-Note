@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react'
 import useAuthStore from './store/authStore'
 import useThemeStore from './store/themeStore'
 import { refreshToken, getProfile } from './api/authApi'
-import AuthLayout from './layouts/AuthLayout'
-import MainLayout from './layouts/MainLayout'
+import AuthLayout from "./components/layout/AuthLayout"
+import MainLayout from "./components/layout/MainLayout"
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
@@ -14,15 +14,30 @@ import BoardListPage from './pages/BoardListPage'
 import BoardPage from './pages/BoardPage'
 import MyPage from './pages/MyPage'
 import SearchPage from './pages/SearchPage'
+import SocialCallbackPage from './pages/SocialCallbackPage'
+import SocialSetupPage from './pages/SocialSetupPage'
 
+// 로그인 안 된 유저 차단
 const PrivateRoute = ({ children }) => {
-  const { isLoggedIn } = useAuthStore()
-  return isLoggedIn ? children : <Navigate to="/login" replace />
+  const { isLoggedIn, user } = useAuthStore()
+  if (!isLoggedIn) return <Navigate to="/login" replace />
+  if (user && !user.is_profile_complete) return <Navigate to="/social-setup" replace />
+  return children
 }
 
+// 로그인 된 유저 차단
 const PublicRoute = ({ children }) => {
   const { isLoggedIn } = useAuthStore()
   return !isLoggedIn ? children : <Navigate to="/home" replace />
+}
+
+// 소셜 설정 페이지 전용 가드
+// 로그인 안 됐으면 로그인으로, 프로필 완성됐으면 홈으로
+const SocialSetupRoute = ({ children }) => {
+  const { isLoggedIn, user } = useAuthStore()
+  if (!isLoggedIn) return <Navigate to="/login" replace />
+  if (user?.is_profile_complete) return <Navigate to="/home" replace />
+  return children
 }
 
 function App() {
@@ -33,7 +48,6 @@ function App() {
     useThemeStore.getState().initTheme()
   }, [])
 
-  // 앱 시작할 때 RefreshToken으로 로그인 상태 복구
   useEffect(() => {
     const tryRefresh = async () => {
       try {
@@ -42,7 +56,6 @@ function App() {
         const { data: user } = await getProfile()
         setUser(user)
       } catch {
-        // 실패하면 로그인 안 된 상태로 둬요
       } finally {
         setAuthChecked(true)
       }
@@ -50,8 +63,6 @@ function App() {
     tryRefresh()
   }, [])
 
-  // 로그인 상태 확인 전엔 아무것도 렌더링 안 해요
-  // 안 그러면 로그인 됐는데도 잠깐 로그인 페이지가 보일 수 있어요
   if (!authChecked) return null
 
   return (
@@ -68,15 +79,19 @@ function App() {
           <Route path="/reset-password/:token" element={<PublicRoute><ResetPasswordPage /></PublicRoute>} />
         </Route>
 
-        {/* 메인 페이지 - MainLayout 적용 */}
+        {/* 메인 페이지 */}
         <Route element={<PrivateRoute><MainLayout /></PrivateRoute>}>
           <Route path="/home"      element={<BoardListPage mode="all" />} />
           <Route path="/priority"  element={<BoardListPage mode="priority" />} />
           <Route path="/starred"   element={<BoardListPage mode="starred" />} />
           <Route path="/board/:id" element={<BoardPage />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/mypage" element={<MyPage />} />
+          <Route path="/search"    element={<SearchPage />} />
+          <Route path="/mypage"    element={<MyPage />} />
         </Route>
+
+        {/* 소셜 로그인 콜백 */}
+        <Route path="/auth/callback" element={<SocialCallbackPage />} />
+        <Route path="/social-setup" element={<SocialSetupRoute><SocialSetupPage /></SocialSetupRoute>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
