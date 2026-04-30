@@ -27,7 +27,7 @@ api.interceptors.response.use(
 
       try {
         // refreshToken으로 새 accessToken 발급
-        const { data } = await axios.post('/api/users/refresh', {}, {
+        const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/users/refresh`, {}, {
           withCredentials: true
         })
 
