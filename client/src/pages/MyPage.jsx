@@ -8,6 +8,7 @@ import {
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import useNotificationStore from '../store/notificationStore'
+import { checkNickname } from '../api/authApi'
 
 const TABS = [
   { key: 'profile',  label: '프로필',    icon: User },
@@ -59,6 +60,7 @@ const MyPage = () => {
 
   const [editForm, setEditForm] = useState({ nickname: '', status_message: '' })
   const [editLoading, setEditLoading] = useState(false)
+  const [nicknameStatus, setNicknameStatus] = useState(null) // null | 'ok' | 'dup' | 'checking'
 
   const [deleteConfirmPw, setDeleteConfirmPw] = useState('')
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
@@ -127,11 +129,18 @@ const MyPage = () => {
 
   const handleEditSave = async () => {
     if (!editForm.nickname.trim()) { toast.error('닉네임을 입력해주세요.'); return }
+
+    if (editForm.nickname !== profile?.nickname && nicknameStatus !== 'ok') {
+      toast.error('닉네임 중복 확인을 해주세요.')
+      return
+    }
+
     setEditLoading(true)
     try {
       const { data } = await updateProfile(editForm)
       setProfile(prev => ({ ...prev, ...data.user }))
       setUser({ ...user, nickname: data.user.nickname })
+      setNicknameStatus(null)
       toast.success('프로필이 저장됐어요.')
     } catch (err) {
       toast.error(err.response?.data?.message ?? '저장에 실패했어요.')
@@ -447,27 +456,46 @@ const MyPage = () => {
                 <div className="flex flex-col gap-4">
                   <div>
                     <p className="text-[12px] mb-1.5" style={{ color: 'var(--color-text-muted)' }}>닉네임</p>
-                    <input
-                      value={editForm.nickname}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, nickname: e.target.value }))}
-                      className="w-full h-11 px-4 rounded-lg text-[14px] outline-none transition-colors"
-                      style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}
-                      onFocus={(e) => e.target.style.borderColor = 'var(--color-brand)'}
-                      onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
-                    />
-                  </div>
-                  <div>
-                    <p className="text-[12px] mb-1.5" style={{ color: 'var(--color-text-muted)' }}>상태 메시지</p>
-                    <input
-                      value={editForm.status_message}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, status_message: e.target.value }))}
-                      placeholder="상태 메시지를 입력하세요 (최대 50자)"
-                      maxLength={50}
-                      className="w-full h-11 px-4 rounded-lg text-[14px] outline-none transition-colors"
-                      style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}
-                      onFocus={(e) => e.target.style.borderColor = 'var(--color-brand)'}
-                      onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        value={editForm.nickname}
+                        onChange={(e) => {
+                          setEditForm(prev => ({ ...prev, nickname: e.target.value }))
+                          setNicknameStatus(null)
+                        }}
+                        className="flex-1 h-11 px-4 rounded-lg text-[14px] outline-none transition-colors"
+                        style={{ background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', color: 'var(--color-text-primary)' }}
+                        onFocus={(e) => e.target.style.borderColor = 'var(--color-brand)'}
+                        onBlur={(e) => e.target.style.borderColor = 'var(--color-border)'}
+                      />
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (!editForm.nickname.trim()) return
+                          setNicknameStatus('checking')
+                          try {
+                            await checkNickname(editForm.nickname.trim())
+                            setNicknameStatus('ok')
+                          } catch {
+                            setNicknameStatus('dup')
+                          }
+                        }}
+                        disabled={nicknameStatus === 'checking'}
+                        className="h-11 px-4 rounded-lg text-[13px] font-semibold transition-colors flex-shrink-0"
+                        style={{
+                          background: 'rgba(45,64,142,0.15)',
+                          border: '1px solid rgba(79,112,255,0.3)',
+                          color: 'var(--color-brand)',
+                          cursor: nicknameStatus === 'checking' ? 'not-allowed' : 'pointer',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(45,64,142,0.25)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'rgba(45,64,142,0.15)'}
+                      >
+                        {nicknameStatus === 'checking' ? '확인 중...' : '중복 확인'}
+                      </button>
+                    </div>
+                    {nicknameStatus === 'ok'  && <p className="text-[11px] mt-1.5" style={{ color: '#34d399' }}>사용 가능한 닉네임이에요.</p>}
+                    {nicknameStatus === 'dup' && <p className="text-[11px] mt-1.5" style={{ color: '#f87171' }}>이미 사용 중인 닉네임이에요.</p>}
                   </div>
                 </div>
                 <div className="flex justify-end gap-3 mt-4">
