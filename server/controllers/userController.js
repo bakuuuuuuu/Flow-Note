@@ -149,7 +149,8 @@ exports.loginUser = async (req, res) => {
         id: user._id,
         email: user.email,
         nickname: user.nickname,
-        profile_img: user.profile_img || null
+        profile_img: user.profile_img || null,
+        is_profile_complete: user.is_profile_complete
       }
     });
 
