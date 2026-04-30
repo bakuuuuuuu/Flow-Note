@@ -21,8 +21,20 @@ const app = express();
 
 // 미들웨어 설정
 app.use(cors({
-  origin: process.env.CLIENT_URL,
-  credentials: true 
+  origin: function(origin, callback) {
+    const allowedOrigins = [
+      process.env.CLIENT_URL,
+      'https://flow-note-pi.vercel.app',
+    ]
+    if (!origin || allowedOrigins.some(o => origin.startsWith(o.replace('https://', 'https://').split('.')[0]))) {
+      callback(null, true)
+    } else if (origin.endsWith('.vercel.app')) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
+  credentials: true
 }));
 
 app.use(cookieParser());
