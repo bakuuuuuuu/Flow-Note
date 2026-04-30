@@ -14,7 +14,7 @@ export const login = (data) => api.post('/users/login', data)
 export const logout = () => api.post('/users/logout')
 
 // [토큰 재발급] 
-export const refreshToken = () => axios.post('/api/users/refresh', {}, { withCredentials: true })
+export const refreshToken = () => axios.post(`${import.meta.env.VITE_API_URL}/api/users/refresh`, {}, { withCredentials: true })
 
 // [비밀번호 찾기 메일 발송]
 export const forgotPassword = (data) => api.post('/users/forgot-password', data)
