@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { SlidersHorizontal } from 'lucide-react'
-import Modal from './Modal'
+import Modal from '../common/Modal'
 
 // 카드 모델 status enum: '대기' | '진행중' | '완료' | '보류'
 const STATUSES = [

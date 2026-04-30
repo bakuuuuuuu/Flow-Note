@@ -470,7 +470,7 @@ const MainHeader = ({ onToggleSidebar, hideToggle = false }) => {
             style={{ background: 'var(--color-brand)', border: '1.5px solid var(--color-border)' }}
           >
             {user?.profile_img && user.profile_img !== 'default_profile.png'
-              ? <img src={`http://localhost:5000${user.profile_img}`} alt="프로필" className="w-full h-full object-cover" />
+              ? <img src={`${import.meta.env.VITE_API_URL}${user.profile_img}`} alt="프로필" className="w-full h-full object-cover" />
               : <div style={{
                   width: '100%', height: '100%',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',

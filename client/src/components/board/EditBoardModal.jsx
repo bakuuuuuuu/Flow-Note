@@ -18,7 +18,7 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import Modal from './Modal'
+import Modal from '../common/Modal'
 import useBoardStore from '../../store/boardStore'
 import useListStore from '../../store/listStore'
 import { moveList } from '../../api/listApi'

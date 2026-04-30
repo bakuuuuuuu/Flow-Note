@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useAuthStore from '../store/authStore'
-import { socialSetup } from '../api/authApi'
+import { socialSetup, checkNickname, logout } from '../api/authApi'
 import toast from 'react-hot-toast'
-import { checkNickname } from '../api/authApi'
+import { inputStyle, labelStyle, onFocus, onBlur } from '../utils/authStyles.jsx'
 
 const SocialSetupPage = () => {
   const navigate = useNavigate()
-  const { setUser } = useAuthStore()
+  const { setUser, logout: storeLogout } = useAuthStore()
   const [form, setForm] = useState({ nickname: '', gender: '', birthdate: '', phone: '' })
   const [nicknameStatus, setNicknameStatus] = useState(null)
   const [error, setError] = useState('')
@@ -66,29 +66,23 @@ const SocialSetupPage = () => {
     }
   }
 
-  const inputStyle = {
-    width: '100%', height: '46px', borderRadius: '10px',
-    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-    color: '#e8eaf0', fontSize: '14px', padding: '0 14px',
-    outline: 'none', transition: 'border-color 0.15s',
-    boxSizing: 'border-box', fontFamily: 'inherit',
+  const handleLogoClick = async () => {
+    try { await logout() } catch {}
+    finally {
+      storeLogout()
+      navigate('/')
+    }
   }
-
-  const labelStyle = {
-    display: 'block', fontSize: '11px', fontWeight: 600,
-    color: 'rgba(232,234,240,0.4)', letterSpacing: '0.06em',
-    textTransform: 'uppercase', marginBottom: '8px',
-  }
-
-  const onFocus = e => e.target.style.borderColor = 'rgba(79,112,255,0.6)'
-  const onBlur  = e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'
 
   return (
     <div style={{ minHeight: '100vh', background: '#0d0f14', fontFamily: 'Pretendard, Noto Sans KR, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ width: '100%', maxWidth: '480px', padding: '0 24px' }}>
 
         {/* 로고 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '40px', justifyContent: 'center' }}>
+        <div
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '40px', justifyContent: 'center', cursor: 'pointer' }}
+          onClick={handleLogoClick}
+        >
           <img src="/logo.png" alt="Flow-Note" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
           <span style={{ fontWeight: 700, fontSize: '16px', color: '#e8eaf0' }}>Flow-Note</span>
         </div>
@@ -181,8 +175,8 @@ const SocialSetupPage = () => {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 4px 20px rgba(45,64,142,0.3)',
           }}
-          onMouseEnter={e => { if (!loading) { e.currentTarget.style.background = '#243370' } }}
-          onMouseLeave={e => { if (!loading) { e.currentTarget.style.background = '#2d408e' } }}
+          onMouseEnter={e => { if (!loading) e.currentTarget.style.background = '#243370' }}
+          onMouseLeave={e => { if (!loading) e.currentTarget.style.background = '#2d408e' }}
         >
           {loading ? '저장 중...' : '시작하기'}
         </button>

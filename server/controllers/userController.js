@@ -130,7 +130,7 @@ exports.loginUser = async (req, res) => {
     // Refresh Token 발급 (장기 - 7일)
     const refreshToken = jwt.sign(
       { id: user._id },
-      process.env.JWT_REFRESH_SECRET || 'flow_note_refresh_key_2024',
+      process.env.JWT_REFRESH_SECRET,
       { expiresIn: '7d' }
     );
 
@@ -168,7 +168,7 @@ exports.refreshToken = async (req, res) => {
     }
 
     // Refresh Token 검증
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || 'flow_note_refresh_key_2024');
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
     
     // 검증 성공 시 새로운 Access Token 생성
     const newAccessToken = jwt.sign(
@@ -221,7 +221,7 @@ exports.forgotPassword = async (req, res) => {
       }
     });
 
-    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
 
     const mailOptions = {
       to: user.email,
@@ -381,7 +381,7 @@ exports.updateProfile = async (req, res) => {
     const updated = await User.findByIdAndUpdate(
       req.user._id,
       { $set: { nickname, status_message } },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     ).select('-password')
 
     res.status(200).json({
@@ -493,7 +493,7 @@ exports.socialSetup = async (req, res) => {
           is_profile_complete: true,
         }
       },
-      { new: true }
+      { returnDocument: 'after' }
     ).select('-password')
 
     res.status(200).json({

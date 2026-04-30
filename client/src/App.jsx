@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react'
 import useAuthStore from './store/authStore'
 import useThemeStore from './store/themeStore'
 import { refreshToken, getProfile } from './api/authApi'
-import AuthLayout from './layouts/AuthLayout'
-import MainLayout from './layouts/MainLayout'
+import AuthLayout from "./components/layout/AuthLayout"
+import MainLayout from "./components/layout/MainLayout"
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
@@ -17,14 +17,27 @@ import SearchPage from './pages/SearchPage'
 import SocialCallbackPage from './pages/SocialCallbackPage'
 import SocialSetupPage from './pages/SocialSetupPage'
 
+// 로그인 안 된 유저 차단
 const PrivateRoute = ({ children }) => {
-  const { isLoggedIn } = useAuthStore()
-  return isLoggedIn ? children : <Navigate to="/login" replace />
+  const { isLoggedIn, user } = useAuthStore()
+  if (!isLoggedIn) return <Navigate to="/login" replace />
+  if (user && !user.is_profile_complete) return <Navigate to="/social-setup" replace />
+  return children
 }
 
+// 로그인 된 유저 차단
 const PublicRoute = ({ children }) => {
   const { isLoggedIn } = useAuthStore()
   return !isLoggedIn ? children : <Navigate to="/home" replace />
+}
+
+// 소셜 설정 페이지 전용 가드
+// 로그인 안 됐으면 로그인으로, 프로필 완성됐으면 홈으로
+const SocialSetupRoute = ({ children }) => {
+  const { isLoggedIn, user } = useAuthStore()
+  if (!isLoggedIn) return <Navigate to="/login" replace />
+  if (user?.is_profile_complete) return <Navigate to="/home" replace />
+  return children
 }
 
 function App() {
@@ -78,7 +91,7 @@ function App() {
 
         {/* 소셜 로그인 콜백 */}
         <Route path="/auth/callback" element={<SocialCallbackPage />} />
-        <Route path="/social-setup" element={<SocialSetupPage />} />
+        <Route path="/social-setup" element={<SocialSetupRoute><SocialSetupPage /></SocialSetupRoute>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

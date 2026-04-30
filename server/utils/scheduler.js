@@ -28,11 +28,11 @@ cron.schedule('0 * * * *', async () => {
     for (const card of urgentCards) {
       await createNotification({
         user_id: card.owner_id,
-        category: 'DEADLINE',       // UPDATE → DEADLINE으로 변경 (카테고리 더 정확하게)
+        category: 'DEADLINE',
         type: 'deadline_approaching',
         title: '마감 임박 알림',
         content: `'${card.title}' 카드의 마감 시간이 24시간 이내로 남았습니다!`,
-        link_url: `/board/${card.board_id}`  // ← 핵심 수정
+        link_url: `/board/${card.board_id}`
       });
 
       card.is_notified = true;

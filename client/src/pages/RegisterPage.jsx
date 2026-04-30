@@ -5,6 +5,7 @@ import useAuthStore from '../store/authStore'
 import SocialButtons from '../components/common/SocialButtons'
 import toast from 'react-hot-toast'
 import TermsModal from '../components/common/TermsModal'
+import { inputStyle, labelStyle, onFocus, onBlur, EyeBtn } from '../utils/authStyles.jsx'
 
 const RegisterPage = () => {
   const navigate = useNavigate()
@@ -93,42 +94,13 @@ const RegisterPage = () => {
     }
   }
 
-  const inputStyle = {
-    width: '100%', height: '46px', borderRadius: '10px',
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(255,255,255,0.1)',
-    color: '#e8eaf0', fontSize: '14px', padding: '0 14px',
-    outline: 'none', transition: 'border-color 0.15s',
-    boxSizing: 'border-box', fontFamily: 'inherit',
-  }
-
-  const labelStyle = {
-    display: 'block', fontSize: '11px', fontWeight: 600,
-    color: 'rgba(232,234,240,0.4)', letterSpacing: '0.06em',
-    textTransform: 'uppercase', marginBottom: '8px',
-  }
-
-  const onFocus = e => e.target.style.borderColor = 'rgba(79,112,255,0.6)'
-  const onBlur  = e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'
-
-  const EyeBtn = ({ show, onToggle }) => (
-    <button type="button" onClick={onToggle} style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: 0, display: 'flex', alignItems: 'center' }}>
-      {show
-        ? <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-        : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-      }
-    </button>
-  )
-
   const STEPS = ['기본 정보', '연락처', '보안']
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
 
-      {/* 약관 모달 */}
       {showTerms && <TermsModal onClose={() => setShowTerms(false)} />}
 
-      {/* 타이틀 */}
       <div style={{ marginBottom: '28px' }}>
         <h2 style={{ fontSize: 'clamp(20px, 1.8vw, 26px)', fontWeight: 800, color: '#e8eaf0', letterSpacing: '-0.04em', marginBottom: '6px', lineHeight: 1.2 }}>
           Flow-Note 시작하기
@@ -174,7 +146,6 @@ const RegisterPage = () => {
       {/* 스텝 콘텐츠 */}
       <div style={{ minHeight: '260px' }}>
 
-        {/* Step 1: 기본 정보 */}
         {step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
@@ -222,7 +193,6 @@ const RegisterPage = () => {
           </div>
         )}
 
-        {/* Step 2: 연락처 */}
         {step === 2 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
@@ -240,7 +210,6 @@ const RegisterPage = () => {
           </div>
         )}
 
-        {/* Step 3: 보안 */}
         {step === 3 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
@@ -260,8 +229,6 @@ const RegisterPage = () => {
                 <p style={{ fontSize: '11px', color: '#f87171', marginTop: '6px' }}>비밀번호가 일치하지 않아요.</p>
               )}
             </div>
-
-            {/* 약관 동의 */}
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
               <input
                 type="checkbox" checked={agreed}
@@ -282,14 +249,12 @@ const RegisterPage = () => {
         )}
       </div>
 
-      {/* 에러 */}
       {error && (
         <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', marginTop: '8px' }}>
           <p style={{ fontSize: '12px', color: '#f87171', margin: 0 }}>{error}</p>
         </div>
       )}
 
-      {/* 버튼 */}
       <div style={{ display: 'flex', gap: '8px', marginTop: '20px' }}>
         {step > 1 && (
           <button
@@ -308,9 +273,7 @@ const RegisterPage = () => {
           </button>
         )}
         <button
-          type="button"
-          onClick={step < 3 ? handleNext : handleSubmit}
-          disabled={loading}
+          type="button" onClick={step < 3 ? handleNext : handleSubmit} disabled={loading}
           style={{
             flex: 1, height: '46px', borderRadius: '10px',
             background: loading ? 'rgba(45,64,142,0.5)' : '#2d408e',
@@ -328,7 +291,6 @@ const RegisterPage = () => {
         </button>
       </div>
 
-      {/* Step 1에서만 소셜/로그인 링크 */}
       {step === 1 && (
         <>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '20px 0' }}>
@@ -339,7 +301,8 @@ const RegisterPage = () => {
           <SocialButtons />
           <p style={{ textAlign: 'center', fontSize: '13px', color: 'rgba(232,234,240,0.35)', marginTop: '16px' }}>
             이미 계정이 있으신가요?{' '}
-            <span onClick={() => navigate('/login')}
+            <span
+              onClick={() => navigate('/login')}
               style={{ color: '#7b9cff', fontWeight: 600, cursor: 'pointer', transition: 'color 0.15s' }}
               onMouseEnter={e => e.currentTarget.style.color = '#a5b8ff'}
               onMouseLeave={e => e.currentTarget.style.color = '#7b9cff'}

@@ -21,7 +21,7 @@ const app = express();
 
 // 미들웨어 설정
 app.use(cors({
-  origin: 'http://localhost:5173', 
+  origin: process.env.CLIENT_URL,
   credentials: true 
 }));
 

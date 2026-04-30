@@ -4,13 +4,13 @@ import { Star, SquarePen, Share2, SlidersHorizontal } from 'lucide-react'
 import useBoardStore from '../store/boardStore'
 import useListStore from '../store/listStore'
 import { getCategoryEmoji } from '../constants/categories'
-import Modal from '../components/common/Modal'
+import DeleteBoardModal from '../components/board/DeleteBoardModal'
 import KanbanBoard from '../components/board/KanbanBoard'
 import CalendarView from '../components/board/CalendarView'
 import CardDetailModal from '../components/board/CardDetailModal'
-import EditBoardModal from '../components/common/EditBoardModal'
-import ShareModal from '../components/common/ShareModal'
-import FilterModal from '../components/common/FilterModal'
+import EditBoardModal from "../components/board/EditBoardModal";
+import ShareModal from "../components/board/ShareModal";
+import FilterModal from "../components/board/FilterModal";
 import toast from 'react-hot-toast'
 
 const BoardPage = () => {
@@ -302,58 +302,13 @@ const BoardPage = () => {
       />
 
       {/* ── 보드 삭제 확인 모달 ── */}
-      <Modal isOpen={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} className="max-w-[400px]">
-        <div className="p-8">
-          <h2 className="text-[22px] font-bold mb-3" style={{ color: 'var(--color-text-primary)' }}>
-            보드를 삭제할까요?
-          </h2>
-          <p className="text-[14px] mb-8" style={{ color: 'var(--color-text-muted)' }}>
-            <span className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-              {currentBoard.title}
-            </span> 보드와 포함된 모든 카드가 삭제돼요. 이 작업은 되돌릴 수 없어요.
-          </p>
-          <div className="flex justify-end gap-3">
-            <button
-              onClick={() => setDeleteModalOpen(false)}
-              className="h-[44px] w-[100px] rounded-[10px] text-[14px] font-medium transition-all cursor-pointer"
-              style={{
-                background: 'var(--color-surface-2)',
-                border: '1px solid var(--color-border)',
-                color: 'var(--color-text-secondary)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'var(--color-border)'
-                e.currentTarget.style.color = 'var(--color-text-primary)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'var(--color-surface-2)'
-                e.currentTarget.style.color = 'var(--color-text-secondary)'
-              }}
-            >
-              취소
-            </button>
-            <button
-              onClick={handleDeleteBoard}
-              disabled={deleteLoading}
-              className="h-[44px] w-[100px] rounded-[10px] text-[14px] font-semibold transition-all cursor-pointer"
-              style={{
-                background: 'var(--color-status-deadline)',
-                color: 'white',
-                border: '1px solid var(--color-status-deadline)',
-                opacity: deleteLoading ? 0.6 : 1,
-              }}
-              onMouseEnter={(e) => {
-                if (!deleteLoading) e.currentTarget.style.background = '#c92a2a'
-              }}
-              onMouseLeave={(e) => {
-                if (!deleteLoading) e.currentTarget.style.background = 'var(--color-status-deadline)'
-              }}
-            >
-              {deleteLoading ? '삭제 중...' : '삭제'}
-            </button>
-          </div>
-        </div>
-      </Modal>
+      <DeleteBoardModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        boardTitle={currentBoard.title}
+        onDelete={handleDeleteBoard}
+        deleteLoading={deleteLoading}
+      />
 
     </div>
   )
