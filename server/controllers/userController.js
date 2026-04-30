@@ -136,10 +136,10 @@ exports.loginUser = async (req, res) => {
 
     // Refresh Token을 보안 쿠키(HttpOnly)에 저장
     res.cookie('refreshToken', refreshToken, {
-      httpOnly: true, // 클라이언트 자바스크립트에서 접근 불가 (보안)
-      secure: process.env.NODE_ENV === 'production', // 배포 환경(HTTPS)에서만 전송
-      sameSite: 'Lax', // CSRF 공격 방지
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7일 유지
+      httpOnly: true,
+      secure: true,
+      sameSite: 'None',
+      maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
     res.status(200).json({
@@ -187,7 +187,8 @@ exports.refreshToken = async (req, res) => {
 exports.logoutUser = async (req, res) => {
   res.clearCookie('refreshToken', {
     httpOnly: true,
-    sameSite: 'Lax'
+    secure: true,
+    sameSite: 'None'
   });
   res.status(200).json({ message: '로그아웃 되었습니다.' });
 };
@@ -464,7 +465,7 @@ exports.deleteAccount = async (req, res) => {
     await SearchHistory.deleteMany({ userId: req.user._id })     // 검색기록
     await User.findByIdAndDelete(req.user._id)                   // 유저
 
-    res.clearCookie('refreshToken', { httpOnly: true, sameSite: 'Lax' })
+    res.clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: 'None' })
     res.status(200).json({ message: '회원 탈퇴가 완료되었습니다.' })
   } catch (error) {
     res.status(500).json({ message: '서버 에러 발생', error: error.message })
