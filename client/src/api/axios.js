@@ -2,8 +2,8 @@ import axios from 'axios'
 import useAuthStore from '../store/authStore'
 
 const api = axios.create({
-  baseURL: '/api',
-  withCredentials: true, // 쿠키(refreshToken) 자동 전송
+  baseURL: `${import.meta.env.VITE_API_URL}/api`,
+  withCredentials: true,
 })
 
 // 요청 인터셉터 - 모든 요청에 accessToken 자동 첨부
