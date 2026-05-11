@@ -16,13 +16,35 @@
 
 ## 📸 스크린샷
 
-<!-- 📷 이미지: 대문(랜딩) 페이지 전체 화면 → PNG -->
+### 대문 페이지
+![대문](docs/images/Flow-Note 대문.png)
 
-<!-- 📷 이미지: 칸반 보드 메인 화면 (카드가 채워진 상태) → PNG 또는 GIF(드래그 동작 보여주기) -->
+### 로그인
+![로그인](docs/images/Flow-Note 로그인.png)
 
-<!-- 📷 이미지: 캘린더 탭 화면 → PNG -->
+### 홈 화면
+![홈](docs/images/Flow-Note 홈 화면.png)
 
-<!-- 📷 이미지: 마이페이지 화면 → PNG -->
+### 칸반 보드
+![보드](docs/images/Flow-Note 보드 상세(보드 탭).png)
+
+### 카드 드래그 이동
+![DnD](docs/images/Flow-Note DnD.gif)
+
+### 카드 상세 모달
+![카드상세](docs/images/Flow-Note 카드 상세 모달.png)
+
+### 필터 적용
+![필터](docs/images/Flow-Note Filter.gif)
+
+### 캘린더 탭
+![캘린더](docs/images/Flow-Note 카드 상세(켈린더 탭).png)
+
+### 헤더 알림 드롭다운
+![알림](docs/images/Flow-Note 헤더 알림 드롭다운.png)
+
+### 마이페이지
+![마이페이지](docs/images/Flow-Note 마이페이지.png)
 
 <br>
 
