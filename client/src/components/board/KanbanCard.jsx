@@ -159,7 +159,7 @@ const KanbanCard = ({ card, onClick }) => {
         {/* 프로필 */}
         {card.owner_id?.profile_img && card.owner_id.profile_img !== 'default_profile.png' ? (
           <img
-            src={card.owner_id.profile_img}
+            src={`${import.meta.env.VITE_API_URL}/${card.owner_id.profile_img}`}
             alt=""
             className="w-[22px] h-[22px] rounded-full flex-shrink-0 object-cover"
           />
