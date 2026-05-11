@@ -10,32 +10,25 @@ router.get('/google',
 
 // 구글 콜백
 router.get('/google/callback',
-  passport.authenticate('google', {
-    session: false,
-    failureRedirect: `${process.env.CLIENT_URL}/login?error=social_failed`
-  }),
+  (req, res, next) => {
+    passport.authenticate('google', { session: false }, (err, user, info) => {
+      if (err) {
+        console.error('구글 콜백 에러:', err)
+        return res.redirect(`${process.env.CLIENT_URL}/login?error=social_failed`)
+      }
+      if (!user) {
+        console.error('구글 유저 없음:', info)
+        return res.redirect(`${process.env.CLIENT_URL}/login?error=social_failed`)
+      }
+      req.user = user
+      next()
+    })(req, res, next)
+  },
   (req, res) => {
     const user = req.user
-
-    const accessToken = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '15m' }
-    )
-
-    const refreshToken = jwt.sign(
-      { id: user._id },
-      process.env.JWT_REFRESH_SECRET || 'flow_note_refresh_key_2024',
-      { expiresIn: '7d' }
-    )
-
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'None',
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    })
-
+    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '15m' })
+    const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: '7d' })
+    res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: 'None', maxAge: 7 * 24 * 60 * 60 * 1000 })
     res.redirect(`${process.env.CLIENT_URL}/auth/callback?token=${accessToken}`)
   }
 )
