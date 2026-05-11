@@ -82,7 +82,7 @@ exports.getBoardById = async (req, res) => {
       lists.map(async (list) => {
         const cards = await Card.find({ list_id: list._id })
           .sort('pos')
-          .populate('owner_id', 'nickname')
+          .populate('owner_id', 'nickname profile_img')
         return {
           ...list._doc,
           cards: cards
