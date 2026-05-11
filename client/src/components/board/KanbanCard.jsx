@@ -157,12 +157,20 @@ const KanbanCard = ({ card, onClick }) => {
         </div>
 
         {/* 프로필 */}
-        <div
-          className="w-[22px] h-[22px] rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 text-white"
-          style={{ background: 'var(--color-brand)' }}
-        >
-          {card.owner_id?.nickname?.[0] ?? 'U'}
-        </div>
+        {card.owner_id?.profile_img && card.owner_id.profile_img !== 'default_profile.png' ? (
+          <img
+            src={card.owner_id.profile_img}
+            alt=""
+            className="w-[22px] h-[22px] rounded-full flex-shrink-0 object-cover"
+          />
+        ) : (
+          <div
+            className="w-[22px] h-[22px] rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 text-white"
+            style={{ background: 'var(--color-brand)' }}
+          >
+            {card.owner_id?.nickname?.[0] ?? 'U'}
+          </div>
+        )}
       </div>
 
     </div>
