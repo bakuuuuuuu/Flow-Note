@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { login } from '../api/authApi'
 import useAuthStore from '../store/authStore'
 import SocialButtons from '../components/common/SocialButtons'
@@ -13,6 +13,7 @@ const LoginPage = () => {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPw, setShowPw] = useState(false)
+  const [searchParams] = useSearchParams()
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
@@ -31,6 +32,13 @@ const LoginPage = () => {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    const error = searchParams.get('error')
+    if (error === 'social_failed') {
+      toast.error('이미 일반 가입된 이메일이에요. 일반 로그인을 이용해주세요.')
+    }
+  }, [])
 
   const handleKeyDown = (e) => { if (e.key === 'Enter') handleSubmit() }
 
