@@ -50,6 +50,7 @@ async (accessToken, refreshToken, profile, done) => {
 
     return done(null, user)
   } catch (err) {
+    console.error('구글 로그인 에러:', err)
     return done(err)
   }
 }))
