@@ -17,35 +17,34 @@
 ## 📸 스크린샷
 
 ### 대문 페이지
-![대문](docs/images/Flow-Note 대문.png)
+![대문](docs/images/Flow-Note%20대문.png)
 
 ### 로그인
-![로그인](docs/images/Flow-Note 로그인.png)
+![로그인](docs/images/Flow-Note%20로그인.png)
 
 ### 홈 화면
-![홈](docs/images/Flow-Note 홈 화면.png)
+![홈](docs/images/Flow-Note%20홈%20화면.png)
 
 ### 칸반 보드
-![보드](docs/images/Flow-Note 보드 상세(보드 탭).png)
+![보드](docs/images/Flow-Note%20보드%20상세(보드%20탭).png)
 
 ### 카드 드래그 이동
-![DnD](docs/images/Flow-Note DnD.gif)
+![DnD](docs/images/Flow-Note%20DnD.gif)
 
 ### 카드 상세 모달
-![카드상세](docs/images/Flow-Note 카드 상세 모달.png)
+![카드상세](docs/images/Flow-Note%20카드%20상세%20모달.png)
 
 ### 필터 적용
-![필터](docs/images/Flow-Note Filter.gif)
+![필터](docs/images/Flow-Note%20Filter.gif)
 
 ### 캘린더 탭
-![캘린더](docs/images/Flow-Note 카드 상세(켈린더 탭).png)
+![캘린더](docs/images/Flow-Note%20카드%20상세(켈린더%20탭).png)
 
 ### 헤더 알림 드롭다운
-![알림](docs/images/Flow-Note 헤더 알림 드롭다운.png)
+![알림](docs/images/Flow-Note%20헤더%20알림%20드롭다운.png)
 
 ### 마이페이지
-![마이페이지](docs/images/Flow-Note 마이페이지.png)
-
+![마이페이지](docs/images/Flow-Note%20마이페이지.png)
 <br>
 
 ---
