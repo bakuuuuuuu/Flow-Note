@@ -16,13 +16,55 @@
 
 ## 📸 스크린샷
 
-<!-- 📷 이미지: 대문(랜딩) 페이지 전체 화면 → PNG -->
+### 🌐 대문 페이지
+![대문](docs/images/Flow-Note%20대문.png)
 
-<!-- 📷 이미지: 칸반 보드 메인 화면 (카드가 채워진 상태) → PNG 또는 GIF(드래그 동작 보여주기) -->
+---
 
-<!-- 📷 이미지: 캘린더 탭 화면 → PNG -->
+### 🔐 로그인
+![로그인](docs/images/Flow-Note%20로그인.png)
 
-<!-- 📷 이미지: 마이페이지 화면 → PNG -->
+---
+
+### 🏠 홈 화면
+![홈](docs/images/Flow-Note%20홈%20화면.png)
+
+---
+
+### 📋 칸반 보드
+![보드](docs/images/Flow-Note%20보드%20상세(보드%20탭).png)
+
+---
+
+### 🗂 카드 상세 모달
+![카드상세](docs/images/Flow-Note%20카드%20상세%20모달.png)
+
+---
+
+### 📅 캘린더 탭
+![캘린더](docs/images/Flow-Note%20카드%20상세(켈린더%20탭).png)
+
+---
+
+### 🔔 헤더 알림 드롭다운
+![알림](docs/images/Flow-Note%20헤더%20알림%20드롭다운.png)
+
+---
+
+### 👤 마이페이지
+![마이페이지](docs/images/Flow-Note%20마이페이지.png)
+
+---
+
+### 🎬 인터랙션
+
+**📌 드래그 앤 드롭 카드 이동**
+![DnD](docs/images/Flow-Note%20DnD.gif)
+
+<br>
+
+**📌 필터 적용**
+![필터](docs/images/Flow-Note%20Filter.gif)
 
 <br>
 
@@ -208,8 +250,6 @@ flow-note/
 | **Notifications** | user_id, category, type, title, content, link_url, is_read |
 | **Activities** | board_id, card_id, user_id, action_type, action, field, old_value, new_value |
 | **SearchHistory** | userId, keyword |
-
-<!-- 📷 이미지: ERD 다이어그램 (노션 또는 dbdiagram.io로 만든 거 있으면 PNG로 추가) -->
 
 <br>
 
