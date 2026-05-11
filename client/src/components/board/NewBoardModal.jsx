@@ -191,7 +191,6 @@ const NewBoardModal = ({ isOpen, onClose, onSuccess }) => {
             onChange={([start, end]) =>
               setForm((prev) => ({ ...prev, startDate: start, deadline: end }))
             }
-            minDate={new Date()}
             locale={ko}
             dateFormat="yyyy.MM.dd"
             placeholderText="시작일 - 마감일 선택"

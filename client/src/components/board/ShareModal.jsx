@@ -8,7 +8,7 @@ const ShareModal = ({ isOpen, onClose, board }) => {
   const [isPublic, setIsPublic] = useState(board?.isPublic ?? false)
   const [copied, setCopied] = useState(false)
 
-  const shareUrl = `https://flow-note.com/share/board/${board?._id}`
+  const shareUrl = `${window.location.origin}/board/${board?._id}`
 
   const handleCopy = () => {
     if (!isPublic) return
