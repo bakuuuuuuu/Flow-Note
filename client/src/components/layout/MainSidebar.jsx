@@ -53,7 +53,7 @@ const MainSidebar = ({ open }) => {
             }}
           >
             {open ? (
-              <span style={{ opacity: 1, transition: 'opacity 0.15s ease 0.1s', whiteSpace: 'nowrap' }}>
+              <span style={{ opacity: 1, transition: 'opacity 0.08s ease', whiteSpace: 'nowrap' }}>
                 새 보드 만들기
               </span>
             ) : (
@@ -67,7 +67,7 @@ const MainSidebar = ({ open }) => {
           {menus.map(({ icon: Icon, label, path }) => (
             <button
               key={path}
-              onClick={() => navigate(path, { replace: true })}  // ← replace: true 추가
+              onClick={() => navigate(path, { replace: true })}
               className="w-full h-[40px] flex items-center rounded-[8px] text-[14px] font-medium transition-colors"
               style={{
                 color: isActive(path) ? 'var(--color-brand)' : 'var(--color-text-secondary)',
@@ -80,7 +80,15 @@ const MainSidebar = ({ open }) => {
               onMouseLeave={(e) => { if (!isActive(path)) e.currentTarget.style.background = 'transparent' }}
             >
               <Icon size={18} style={{ flexShrink: 0 }} />
-              {open && <span>{label}</span>}
+              <span style={{
+                opacity: open ? 1 : 0,
+                transition: 'opacity 0.08s ease',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                maxWidth: open ? '200px' : '0px',
+              }}>
+                {label}
+              </span>
             </button>
           ))}
         </nav>
@@ -148,7 +156,7 @@ const MainSidebar = ({ open }) => {
           <div className="mx-4 mb-3 border-t" style={{ borderColor: 'var(--color-border)' }} />
           <div className="px-4 pb-6 flex flex-col gap-1">
             {[
-              { icon: Settings, label: '설정',  action: () => {} },
+              { icon: Settings, label: '설정',  action: () => navigate('/mypage') },
               { icon: BookOpen, label: '블로그', action: () => window.open('https://youngjin99.tistory.com', '_blank') },
             ].map(({ icon: Icon, label, action }) => (
               <button
@@ -163,7 +171,15 @@ const MainSidebar = ({ open }) => {
                 }}
               >
                 <Icon size={18} style={{ flexShrink: 0 }} />
-                {open && <span>{label}</span>}
+                <span style={{
+                  opacity: open ? 1 : 0,
+                  transition: 'opacity 0.08s ease',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  maxWidth: open ? '200px' : '0px',
+                }}>
+                  {label}
+                </span>
               </button>
             ))}
           </div>
