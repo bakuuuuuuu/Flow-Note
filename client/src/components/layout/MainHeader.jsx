@@ -79,12 +79,10 @@ const MainHeader = ({ onToggleSidebar, hideToggle = false }) => {
   }
 
   const handleLogout = async () => {
+    logout()
+    navigate('/login')
+    toast.success('로그아웃 되었습니다 👏')
     try { await logoutApi() } catch {}
-    finally {
-      logout()
-      toast.success('로그아웃 되었습니다 👏')
-      navigate('/login')
-    }
   }
 
   const handleToggleTheme = () => {
