@@ -53,7 +53,7 @@ const MainSidebar = ({ open }) => {
             }}
           >
             {open ? (
-              <span style={{ opacity: 1, transition: 'opacity 0.08s ease', whiteSpace: 'nowrap' }}>
+              <span style={{ opacity: open ? 1 : 0, transition: 'opacity 0.08s ease 0.1s', whiteSpace: 'nowrap' }}>
                 새 보드 만들기
               </span>
             ) : (
