@@ -260,7 +260,7 @@ const LandingPage = () => {
             <img src="/logo.png" alt="" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
             <span style={{ fontWeight: 700, fontSize: '14px', color: '#e8eaf0' }}>Flow-Note</span>
           </div>
-          <p style={{ fontSize: '12px', color: 'rgba(232,234,240,0.25)', margin: 0 }}>© 2026 Flow-Note. All rights reserved.</p>
+          <p style={{ fontSize: '12px', color: 'rgba(232,234,240,0.25)', margin: 0, paddingLeft: '4px' }}>© 2026 Flow-Note. All rights reserved.</p>
         </div>
         <div style={{ display: 'flex', gap: '24px' }}>
           {['이용약관', '개인정보처리방침'].map(t => (
